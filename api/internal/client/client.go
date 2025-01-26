@@ -32,6 +32,19 @@ type client struct {
 	backend string
 }
 
+// Config represents the configuration for the backend HTTP client used in the application.
+// It provides essential settings to configure the backend endpoint and request timeout.
+//
+// Fields:
+//   - BackendEndpoint: Specifies the URL of the backend endpoint (e.g., REST API endpoint).
+//     Validates as a valid URL and is a required field.
+//   - BackendRequestTimeout: Specifies the maximum duration to wait for a backend request to complete.
+//     Validates as a duration between 100 ms and 30 s (inclusive).
+//
+// Usage:
+// This struct is designed to integrate seamlessly with the `cfg` and `val` packages for centralized
+// configuration management and validation. It ensures the backend client is properly configured
+// for reliable communication with the backend services.
 type Config struct {
 	BackendEndpoint       string        `mapstructure:"backend_endpoint" validate:"url,required"`
 	BackendRequestTimeout time.Duration `mapstructure:"backend_request_timeout" validate:"min=100ms,max=30s"`
