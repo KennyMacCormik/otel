@@ -1,5 +1,5 @@
 
-# OTel demo Project Configuration and Setup
+# OpenTelemetry demo project
 
 ## Overview
 This project includes two main components:
@@ -7,6 +7,89 @@ This project includes two main components:
 2. **API**: A REST API that interacts with the backend.
 
 The configuration for both components can be controlled via environment variables. This document outlines the minimal and full configuration options for each component, along with setup details.
+
+---
+
+## Usage Flow
+
+This section demonstrates the typical usage flow of the API for interacting with the backend's in-memory key-value database. The flow includes retrieving, storing, and deleting key-value pairs.
+
+
+### Step 1: Retrieve a Non-Existent Key (`GET`)
+Attempting to retrieve a key that does not exist in the database will result in a `not found` response.
+
+**Request:**
+```bash
+curl --location 'http://localhost:8080/storage/testKey' \
+--data ''
+```
+
+**Response:**
+```json
+"not found"
+```
+
+### Step 2: Store a Key-Value Pair (`POST`)
+Store a new key-value pair in the database using the `POST` method.
+
+**Request:**
+```bash
+curl --location 'http://localhost:8080/storage' \
+--data '{
+    "key":"testKey",
+    "value":"testValue"
+}'
+```
+
+**Response:**
+```json
+"ok"
+```
+
+### Step 3: Retrieve the Stored Key-Value Pair (`GET`)
+Retrieve the previously stored key-value pair.
+
+**Request:**
+```bash
+curl --location 'http://localhost:8080/storage/testKey' \
+--data ''
+```
+
+**Response:**
+```json
+{
+    "key": "testKey",
+    "value": "testValue"
+}
+```
+
+### Step 4: Delete the Key-Value Pair (`DELETE`)
+Delete the stored key-value pair using the `DELETE` method.
+
+**Request:**
+```bash
+curl --location --request DELETE 'http://localhost:8080/storage/testKey' \
+--data ''
+```
+
+**Response:**
+```json
+"ok"
+```
+
+### Step 5: Attempt to Retrieve the Deleted Key (`GET`)
+Attempting to retrieve a key that has been deleted will again result in a `not found` response.
+
+**Request:**
+```bash
+curl --location 'http://localhost:8080/storage/testKey' \
+--data ''
+```
+
+**Response:**
+```json
+"not found"
+```
 
 ---
 

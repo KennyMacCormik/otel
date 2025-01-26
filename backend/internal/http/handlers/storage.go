@@ -20,7 +20,7 @@ var (
 
 type body struct {
 	Key string `json:"key"`
-	Val string `json:"val"`
+	Val string `json:"value"`
 }
 
 type errorMsg struct {
