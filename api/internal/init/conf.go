@@ -1,6 +1,7 @@
 package init
 
 import (
+	"api/internal/client"
 	"fmt"
 	"github.com/KennyMacCormik/HerdMaster/pkg/cfg"
 	"github.com/KennyMacCormik/HerdMaster/pkg/cfg/genCfg"
@@ -13,6 +14,7 @@ const (
 	HttpConfigName        = "http"
 	RateLimiterConfigName = "rateLimiter"
 	OtelConfigName        = "otel"
+	ClientConfigName      = "client"
 )
 
 type Config struct {
@@ -20,17 +22,31 @@ type Config struct {
 	Http        genCfg.HttpConfig
 	RateLimiter genCfg.RateLimiterConfig
 	Otel        genCfg.OtelConfig
+	Client      client.Config
 }
 
 func InitConfig(validator val.Validator) (*Config, error) {
 	var conf Config
-	if err := registerCfg(registerLogCfg, registerHttpCfg, registerRateLimiterCfg, registerOtelCfg); err != nil {
+	if err := registerCfg(
+		registerLogCfg,
+		registerHttpCfg,
+		registerRateLimiterCfg,
+		registerOtelCfg,
+		registerClientCfg,
+	); err != nil {
 		return nil, err
 	}
 	if err := cfg.NewConfig(); err != nil {
 		return nil, err
 	}
-	if err := bindCfgToConfig(&conf, bindLogCfgToConfig, bindHttpCfgToConfig, bindRateLimiterToConfig, bindOtelToConfig); err != nil {
+	if err := bindCfgToConfig(
+		&conf,
+		bindLogCfgToConfig,
+		bindHttpCfgToConfig,
+		bindRateLimiterToConfig,
+		bindOtelToConfig,
+		bindClientConfigToConfig,
+	); err != nil {
 		return nil, err
 	}
 	if err := validator.ValidateStruct(&conf); err != nil {
@@ -117,6 +133,21 @@ func bindOtelToConfig(conf *Config) error {
 	return nil
 }
 
+func bindClientConfigToConfig(conf *Config) error {
+	anyVal, ok := cfg.GetConfig(ClientConfigName)
+	if !ok {
+		return fmt.Errorf("no configuration found for %s", ClientConfigName)
+	}
+	clCfg, ok := anyVal.(*client.Config)
+	if !ok {
+		return fmt.Errorf("logging config of unexpected type %s: expected %s",
+			reflect.TypeOf(anyVal), "*client.Config",
+		)
+	}
+	conf.Client = *clCfg
+	return nil
+}
+
 func registerLogCfg() error {
 	return cfg.RegisterConfig(LoggingConfigName, cfg.ConfigEntry{
 		Config: &genCfg.LoggingConfig{},
@@ -159,10 +190,26 @@ func registerOtelCfg() error {
 		BindArray: []cfg.BindValue{
 			{
 				ValName:    "otel_endpoint",
-				DefaultVal: "http://localhost:4318",
+				DefaultVal: "",
 			},
 			{
 				ValName:    "otel_shutdown_timeout",
+				DefaultVal: "500ms",
+			},
+		},
+	})
+}
+
+func registerClientCfg() error {
+	return cfg.RegisterConfig(ClientConfigName, cfg.ConfigEntry{
+		Config: &client.Config{},
+		BindArray: []cfg.BindValue{
+			{
+				ValName:    "backend_endpoint",
+				DefaultVal: "",
+			},
+			{
+				ValName:    "backend_request_timeout",
 				DefaultVal: "500ms",
 			},
 		},
@@ -175,11 +222,11 @@ func registerHttpCfg() error {
 		BindArray: []cfg.BindValue{
 			{
 				ValName:    "http_host",
-				DefaultVal: "0.0.0.0",
+				DefaultVal: "",
 			},
 			{
 				ValName:    "http_port",
-				DefaultVal: "8080",
+				DefaultVal: "",
 			},
 			{
 				ValName:    "http_read_timeout",

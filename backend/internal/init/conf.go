@@ -159,7 +159,7 @@ func registerOtelCfg() error {
 		BindArray: []cfg.BindValue{
 			{
 				ValName:    "otel_endpoint",
-				DefaultVal: "http://localhost:4318",
+				DefaultVal: "",
 			},
 			{
 				ValName:    "otel_shutdown_timeout",
@@ -175,11 +175,11 @@ func registerHttpCfg() error {
 		BindArray: []cfg.BindValue{
 			{
 				ValName:    "http_host",
-				DefaultVal: "0.0.0.0",
+				DefaultVal: "",
 			},
 			{
 				ValName:    "http_port",
-				DefaultVal: "8080",
+				DefaultVal: "",
 			},
 			{
 				ValName:    "http_read_timeout",

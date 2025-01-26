@@ -13,9 +13,14 @@ import (
 	"net/http"
 )
 
+var (
+	errMalformedRequest = errorMsg{Err: "malformed request"}
+	errInternalServer   = errorMsg{Err: "internal server error"}
+)
+
 type body struct {
 	Key string `json:"key"`
-	Val string `json:"val,omitempty"`
+	Val string `json:"val"`
 }
 
 type errorMsg struct {
@@ -29,43 +34,54 @@ func logErrorAndTraceEvent(err error, msg string, span trace.Span, lg *slog.Logg
 
 func NewStorageHandlers(st cache.Interface, lg *slog.Logger) func(*gin.Engine) {
 	return func(router *gin.Engine) {
-		router.GET("/storage", get(st, lg))
+		router.GET("/storage/:key", get(st, lg))
 		router.PUT("/storage", set(st, lg))
 		router.POST("/storage", set(st, lg))
-		router.DELETE("/storage", del(st, lg))
+		router.DELETE("/storage/:key", del(st, lg))
 	}
 }
 
-func startSpan(c *gin.Context) trace.Span {
-	tracer := otel.Tracer("backend/get")
-	ctx, span := tracer.Start(c.Request.Context(), "get")
+func startSpan(c *gin.Context, traceName, spanName string) trace.Span {
+	tracer := otel.Tracer(traceName)
+	ctx, span := tracer.Start(c.Request.Context(), spanName)
 	c.Request = c.Request.WithContext(ctx)
 	return span
 }
 
+func getKey(c *gin.Context) (string, error) {
+	key := c.Param("key")
+	if key == "" {
+		return "", fmt.Errorf("no key provided")
+	}
+	return key, nil
+}
+
 func get(st cache.Interface, lg *slog.Logger) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		const (
+			traceName = "backend/http/get"
+			spanName  = "http/get"
+		)
 		// tracing
-		span := startSpan(c)
+		span := startSpan(c, traceName, spanName)
 		defer span.End()
 		// prep
-		id, err := middleware.GetRequestIDFromCtx(c)
-		newLg := middleware.LogReq(c, id, lg, false)
+		requestId, err := middleware.GetRequestIDFromCtx(c)
+		newLg := middleware.LogReq(c, requestId, lg, false)
 		if err != nil {
 			logErrorAndTraceEvent(err, "cannot get request id from context", span, newLg)
 		}
-		b := &body{}
-		// get body
-		err = c.ShouldBindJSON(&b)
+		// get key
+		key, err := getKey(c)
 		if err != nil {
-			logErrorAndTraceEvent(err, "cannot get body from request", span, newLg)
-			c.JSON(http.StatusBadRequest, errorMsg{Err: "malformed body"})
+			logErrorAndTraceEvent(err, "failed to get key", span, newLg)
+			c.JSON(http.StatusBadRequest, "failed to get key")
 			return
 		}
-		newLg.Debug("request body", "body", b)
+		span.SetAttributes(attribute.String("key", key))
+		newLg.Debug("decoded key", "key", key)
 		// invoke request
-		span.SetAttributes(attribute.String("Key", b.Key))
-		val, err := st.Get(c.Request.Context(), b.Key)
+		val, err := st.Get(c.Request.Context(), key)
 		if err != nil {
 			if errors.Is(err, cache.ErrNotFound) {
 				logErrorAndTraceEvent(err, "key not found", span, newLg)
@@ -77,15 +93,19 @@ func get(st cache.Interface, lg *slog.Logger) func(c *gin.Context) {
 			return
 		}
 		// send response
-		result := body{Key: b.Key, Val: fmt.Sprintf("%v", val)}
+		result := body{Key: key, Val: fmt.Sprintf("%v", val)}
 		c.JSON(http.StatusOK, result)
 	}
 }
 
 func set(st cache.Interface, lg *slog.Logger) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		const (
+			traceName = "backend/http/set"
+			spanName  = "http/set"
+		)
 		// tracing
-		span := startSpan(c)
+		span := startSpan(c, traceName, spanName)
 		defer span.End()
 		// prep
 		id, err := middleware.GetRequestIDFromCtx(c)
@@ -98,19 +118,16 @@ func set(st cache.Interface, lg *slog.Logger) func(c *gin.Context) {
 		err = c.ShouldBindJSON(&b)
 		if err != nil {
 			logErrorAndTraceEvent(err, "cannot get body from request", span, newLg)
-			c.JSON(http.StatusBadRequest, errorMsg{Err: "malformed body"})
+			c.JSON(http.StatusBadRequest, errMalformedRequest)
 			return
 		}
-		newLg.Debug("request body", "body", b)
+		span.SetAttributes(attribute.String("key", b.Key), attribute.String("value", b.Val))
+		newLg.Debug("request body", "key", b.Key, "value", b.Val)
 		// invoke request
-		span.SetAttributes(
-			attribute.String("Key", b.Key),
-			attribute.String("Val", b.Val),
-		)
 		err = st.Set(c.Request.Context(), b.Key, b.Val)
 		if err != nil {
 			logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
-			c.JSON(http.StatusInternalServerError, errorMsg{Err: "server-side error"})
+			c.JSON(http.StatusInternalServerError, errInternalServer)
 			return
 		}
 		// send response
@@ -120,30 +137,33 @@ func set(st cache.Interface, lg *slog.Logger) func(c *gin.Context) {
 
 func del(st cache.Interface, lg *slog.Logger) func(c *gin.Context) {
 	return func(c *gin.Context) {
+		const (
+			traceName = "backend/http/set"
+			spanName  = "http/set"
+		)
 		// tracing
-		span := startSpan(c)
+		span := startSpan(c, traceName, spanName)
 		defer span.End()
 		// prep
-		id, err := middleware.GetRequestIDFromCtx(c)
-		newLg := middleware.LogReq(c, id, lg, false)
+		requestId, err := middleware.GetRequestIDFromCtx(c)
+		newLg := middleware.LogReq(c, requestId, lg, false)
 		if err != nil {
 			logErrorAndTraceEvent(err, "cannot get request id from context", span, newLg)
 		}
-		b := &body{}
-		// get body
-		err = c.ShouldBindJSON(&b)
+		// get key
+		key, err := getKey(c)
 		if err != nil {
-			logErrorAndTraceEvent(err, "cannot get body from request", span, newLg)
-			c.JSON(http.StatusBadRequest, errorMsg{Err: "malformed body"})
+			logErrorAndTraceEvent(err, "failed to get key", span, newLg)
+			c.JSON(http.StatusBadRequest, "failed to get key")
 			return
 		}
-		newLg.Debug("request body", "body", b)
+		span.SetAttributes(attribute.String("key", key))
+		newLg.Debug("decoded key", "key", key)
 		// invoke request
-		span.SetAttributes(attribute.String("Key", b.Key))
-		err = st.Delete(c.Request.Context(), b.Key)
+		err = st.Delete(c.Request.Context(), key)
 		if err != nil {
 			logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
-			c.JSON(http.StatusInternalServerError, errorMsg{Err: "server-side error"})
+			c.JSON(http.StatusInternalServerError, errInternalServer)
 			return
 		}
 		// send response

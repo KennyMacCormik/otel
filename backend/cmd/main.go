@@ -6,7 +6,6 @@ import (
 	"context"
 	"github.com/KennyMacCormik/HerdMaster/pkg/log"
 	"github.com/KennyMacCormik/HerdMaster/pkg/val"
-	"github.com/gin-gonic/gin"
 	"os"
 	"os/signal"
 	"syscall"
@@ -15,7 +14,6 @@ import (
 const errExit = 1
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
 	// init default logger, errors ignored as per documentation
 	lg, _ := log.GetLogger()
 	// init validator

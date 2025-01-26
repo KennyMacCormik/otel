@@ -12,7 +12,6 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 	"log"
 	"log/slog"
-	"time"
 )
 
 const otelServiceName = "api"
@@ -34,11 +33,6 @@ func (cw *CustomWriter) RedirectLoggerToSlog() {
 func (cw *CustomWriter) Write(p []byte) (n int, err error) {
 	cw.lg.Error(conv.BytesToStr(p), "OTEL", true)
 	return len(p), nil
-}
-
-type OtelConfig struct {
-	Endpoint        string        `mapstructure:"otel_endpoint" validate:"url,required"`
-	ShutdownTimeout time.Duration `mapstructure:"otel_shutdown_timeout" validate:"min=100ms,max=30s"`
 }
 
 func InitOtel(ctx context.Context, conf *Config, lg *slog.Logger) (closer func() error, err error) {

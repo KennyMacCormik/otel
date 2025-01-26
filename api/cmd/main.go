@@ -8,17 +8,14 @@ import (
 	"context"
 	"github.com/KennyMacCormik/HerdMaster/pkg/log"
 	"github.com/KennyMacCormik/HerdMaster/pkg/val"
-	"github.com/gin-gonic/gin"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 )
 
 const errExit = 1
 
 func main() {
-	gin.SetMode(gin.ReleaseMode)
 	// init default logger, errors ignored as per documentation
 	lg, _ := log.GetLogger()
 	// init validator
@@ -57,8 +54,7 @@ func main() {
 		}
 	}()
 	// init http client
-	// TODO: add parametrization
-	httpClient := client.NewClient("http://localhost:8081/storage", 1*time.Second)
+	httpClient := client.NewClient(conf.Client.BackendEndpoint, conf.Client.BackendRequestTimeout)
 	// init compute
 	comp := compute.NewComputeLayer(c, httpClient, lg)
 	// init server
