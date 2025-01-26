@@ -1,5 +1,5 @@
 
-# HerdMaster Project Configuration and Setup
+# OTel demo Project Configuration and Setup
 
 ## Overview
 This project includes two main components:
