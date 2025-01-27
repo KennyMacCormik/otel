@@ -165,6 +165,8 @@ General configuration options can be found [here](https://github.com/KennyMacCor
 ## TODO
 
 - Add Swagger/OpenAPI documentation for the API and Backend endpoints.
+- Define app behavior in more details
+- Add prometheus exporter
 
 ---
 
