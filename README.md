@@ -167,6 +167,7 @@ General configuration options can be found [here](https://github.com/KennyMacCor
 - Add Swagger/OpenAPI documentation for the API and Backend endpoints.
 - Define app behavior in more details
 - Add prometheus exporter
+- Fix RateLimiter metrics
 
 ---
 
