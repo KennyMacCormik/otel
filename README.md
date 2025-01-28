@@ -167,7 +167,36 @@ General configuration options can be found [here](https://github.com/KennyMacCor
 - Add Swagger/OpenAPI documentation for the API and Backend endpoints.
 - Define app behavior in more details
 - Add prometheus exporter
-- Fix RateLimiter metrics
+- Fix main.go to remove useless comments and add emtpy strings
+- Sort imports (Golnad have settings for that)
+- Add linters (https://golangci-lint.run/usage/linters/)
+- Change myinit name
+- Change module name to repo name
+- Add run and close funcs to http server
+- Remove goroutine and closer return from InitServer()
+- Change cfg package according to recommendations (https://github.com/katyafirstova/auth_service/tree/week_2)
+- Change file naming to snake_case
+- Change int to int64
+- Move storage.go to separate folder
+- Add empty strings everywhere
+- Make logger global (refactor log package)
+- Review http response codes (201, 204)
+- Add structs and interfaces for handlers
+- Do not use "Interface" and "layer" as names
+- Add TTL tests for cache
+- Fix compute.Get()
+  - Remove unnecessary else
+  - write val to cache
+  - do not stop if cache fails
+- use "service" instead of "compute"
+- add common data types to models
+- RateLimiter
+  - Store RateLimiter conf in Redis
+  - Move RateLimiter metrics to prometheus
+  - Move RateLimiter away from logs and traces
+  - Fix RateLimiter metrics
+- Remove traces from middleware
+- Add error marks to span
 
 ---
 
