@@ -2,6 +2,12 @@ module github.com/KennyMacCormik/otel/otel-common
 
 go 1.23.4
 
+replace github.com/KennyMacCormik/otel/otel-common => ../otel-common
+
+replace github.com/KennyMacCormik/otel/api => ../api
+
+replace github.com/KennyMacCormik/otel/backend => ../backend
+
 require (
 	github.com/KennyMacCormik/HerdMaster v0.7.7
 	github.com/KennyMacCormik/common/log v0.2.0
