@@ -8,6 +8,7 @@ import (
 	myhttp "github.com/KennyMacCormik/HerdMaster/pkg/gin"
 	defaultMiddleware "github.com/KennyMacCormik/HerdMaster/pkg/gin/middleware"
 	"github.com/KennyMacCormik/HerdMaster/pkg/gin/router"
+	"github.com/KennyMacCormik/otel/otel-common/gin/gin_request_id"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"log/slog"
 	"net/http"
@@ -51,6 +52,7 @@ func initRouter(conf *Config, st cache.Interface, lg *slog.Logger) *router.GinFa
 		middleware.GetTraceParent(),
 		otelgin.Middleware(otelGinMiddlewareName),
 		defaultMiddleware.RequestIDMiddleware(),
+		gin_request_id.RequestIDMiddleware(),
 		defaultMiddleware.NewRateLimiter(conf.RateLimiter.MaxRunning,
 			conf.RateLimiter.MaxWait, conf.RateLimiter.RetryAfter, lg).GetRateLimiter(),
 	)

@@ -1,4 +1,4 @@
-module backend
+module github.com/KennyMacCormik/otel/backend
 
 go 1.23.4
 
