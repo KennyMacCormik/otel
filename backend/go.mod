@@ -2,12 +2,6 @@ module github.com/KennyMacCormik/otel/backend
 
 go 1.23.4
 
-replace github.com/KennyMacCormik/otel/otel-common => ../otel-common
-
-replace github.com/KennyMacCormik/otel/api => ../api
-
-replace github.com/KennyMacCormik/otel/backend => ../backend
-
 require (
 	github.com/KennyMacCormik/HerdMaster v0.7.7
 	github.com/KennyMacCormik/otel/otel-common v0.0.0-00010101000000-000000000000
@@ -21,6 +15,7 @@ require (
 
 require (
 	github.com/KennyMacCormik/common/log v0.2.0 // indirect
+	github.com/KennyMacCormik/common/val v0.1.1 // indirect
 	github.com/bytedance/sonic v1.12.8 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect

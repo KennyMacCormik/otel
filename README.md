@@ -102,7 +102,7 @@ curl --location 'http://localhost:8080/storage/testKey' \
 | `BACKEND_ENDPOINT`  | `http://0.0.0.0:8081/storage` | URL of the backend storage API.            |
 | `HTTP_HOST`         | `0.0.0.0`            | Host for the API HTTP server.             |
 | `HTTP_PORT`         | `8080`               | Port for the API HTTP server.             |
-| `OTEL_ENDPOINT`     | `http://localhost:4318` | OpenTelemetry endpoint for distributed tracing. |
+| `OTEL_ENDPOINT`     | `http://localhost:4318` | OpenTelemetry OTelEndpoint for distributed tracing. |
 
 ### Full Configuration Options
 
@@ -114,7 +114,7 @@ General configuration options can be found [here](https://github.com/KennyMacCor
 ##### Fields
 
 - **BackendEndpoint**:
-    - Description: Specifies the URL of the backend endpoint (e.g., REST API endpoint).
+    - Description: Specifies the URL of the backend OTelEndpoint (e.g., REST API OTelEndpoint).
     - Validation: Must be a valid URL (`url` tag) and is required.
     - Example: `http://localhost:8081/storage`.
 
@@ -143,7 +143,7 @@ BACKEND_REQUEST_TIMEOUT=5s
 |-----------------|-----------------------|--------------------------------------------|
 | `HTTP_HOST`     | `0.0.0.0`            | Host for the backend HTTP server.         |
 | `HTTP_PORT`     | `8081`               | Port for the backend HTTP server.         |
-| `OTEL_ENDPOINT` | `http://localhost:4318` | OpenTelemetry endpoint for distributed tracing. |
+| `OTEL_ENDPOINT` | `http://localhost:4318` | OpenTelemetry OTelEndpoint for distributed tracing. |
 
 #### General options
 General configuration options can be found [here](https://github.com/KennyMacCormik/HerdMaster/blob/main/pkg/cfg/genCfg/gencfg.go).

@@ -26,11 +26,11 @@ func TestNewHttpServer(t *testing.T) {
 		10*time.Second,
 	)
 
-	assert.NotNil(t, server, "HttpServer instance should not be nil")
-	assert.Equal(t, "127.0.0.1:8080", server.svr.Addr, "HttpServer should use the correct address")
-	assert.Equal(t, 10*time.Second, server.svr.ReadTimeout, "HttpServer should set the correct ReadTimeout")
-	assert.Equal(t, 10*time.Second, server.svr.WriteTimeout, "HttpServer should set the correct WriteTimeout")
-	assert.Equal(t, 10*time.Second, server.svr.IdleTimeout, "HttpServer should set the correct IdleTimeout")
+	assert.NotNil(t, server, "Server instance should not be nil")
+	assert.Equal(t, "127.0.0.1:8080", server.svr.Addr, "Server should use the correct address")
+	assert.Equal(t, 10*time.Second, server.svr.ReadTimeout, "Server should set the correct ReadTimeout")
+	assert.Equal(t, 10*time.Second, server.svr.WriteTimeout, "Server should set the correct WriteTimeout")
+	assert.Equal(t, 10*time.Second, server.svr.IdleTimeout, "Server should set the correct IdleTimeout")
 }
 
 func TestHttpServer_StartAndClose(t *testing.T) {

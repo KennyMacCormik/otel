@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/KennyMacCormik/HerdMaster/pkg/conv"
+	customLogger "github.com/KennyMacCormik/common/log"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
@@ -35,10 +36,10 @@ func (cw *CustomWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func InitOtel(ctx context.Context, conf *Config, lg *slog.Logger) (closer func() error, err error) {
-	NewCustomWriter(lg).RedirectLoggerToSlog()
+func OTelInit(ctx context.Context, conf *Config) (*trace.TracerProvider, error) {
+	NewCustomWriter(customLogger.CopyLogger()).RedirectLoggerToSlog()
 
-	exporter, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpointURL(conf.Otel.Endpoint))
+	exporter, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpointURL(conf.OTel.Endpoint))
 	if err != nil {
 		return nil, fmt.Errorf("init otel: %w", err)
 	}
@@ -60,9 +61,5 @@ func InitOtel(ctx context.Context, conf *Config, lg *slog.Logger) (closer func()
 	otel.SetTextMapPropagator(propagation.TraceContext{})
 	otel.SetTracerProvider(tp)
 
-	return func() error {
-		ctxStop, cancel := context.WithTimeout(ctx, conf.Otel.ShutdownTimeout)
-		defer cancel()
-		return tp.Shutdown(ctxStop)
-	}, nil
+	return tp, nil
 }

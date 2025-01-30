@@ -1,11 +1,13 @@
 package main
 
 import (
-	myinit "backend/internal/init"
-	"backend/internal/storage"
 	"context"
-	"github.com/KennyMacCormik/HerdMaster/pkg/log"
-	"github.com/KennyMacCormik/HerdMaster/pkg/val"
+	"errors"
+	"fmt"
+	"github.com/KennyMacCormik/common/log"
+	initApp "github.com/KennyMacCormik/otel/backend/internal/init"
+	"github.com/KennyMacCormik/otel/backend/internal/storage"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -14,38 +16,60 @@ import (
 const errExit = 1
 
 func main() {
-	// init default logger, errors ignored as per documentation
-	lg, _ := log.GetLogger()
-	// init validator
-	v := val.GetValidator()
-	// init conf
-	conf, err := myinit.InitConfig(v)
+	conf := initApp.GetConfig()
+	if conf == nil {
+		log.Error("failed to initialize config")
+		os.Exit(errExit)
+
+	}
+
+	log.Configure(log.WithLogLevel(conf.Log.Level))
+
+	log.Info("config initialized")
+	log.Debug(fmt.Sprintf("%+v", conf))
+
+	tp, err := initApp.OTelInit(context.Background(), conf)
 	if err != nil {
-		lg.Error("failed to initialize config", "error", err)
+		log.Error("failed to initialize OTel", "error", err)
 		os.Exit(errExit)
 	}
-	// reconfigure logger according to loaded conf
-	lg, err = log.ConfigureLogger(log.WithConfig(conf.Log.Level, conf.Log.Format))
-	if err != nil {
-		lg.Warn("failed to configure logger", "error", err)
-	}
-	lg.Debug("initialized config", "config", conf)
-	// init trace
-	stopTrace, err := myinit.InitOtel(context.Background(), conf, lg)
-	if err != nil {
-		lg.Error("failed to initialize otel", "error", err)
-		os.Exit(errExit)
-	}
-	defer func() { _ = stopTrace() }()
-	// init storage
+	log.Info("OTel initialized")
+	defer func() {
+		ctxStop, cancel := context.WithTimeout(context.Background(), conf.OTel.ShutdownTimeout)
+		defer cancel()
+		err = tp.Shutdown(ctxStop)
+		if err != nil {
+			log.Error("failed to shutdown OTel", "error", err)
+		}
+	}()
+
 	st := storage.NewStorage()
-	// init server
-	closer := myinit.InitServer(conf, errExit, st, lg)
-	defer closer()
-	// gracefully shutting down
+	log.Info("cache initialized")
+
+	httpSvr := initApp.HttpServer(conf, st)
+	log.Info("http server initialized")
+	defer func() {
+		err = httpSvr.Close(conf.Http.ShutdownTimeout)
+		if err != nil {
+			log.Error("failed to shutdown http server", "error", err)
+		}
+	}()
+
+	go func() {
+		err = httpSvr.Start()
+		if err != nil {
+			if !errors.Is(err, http.ErrServerClosed) {
+				log.Error("Failed to start server", "error", err)
+				os.Exit(errExit)
+			}
+		}
+	}()
+	log.Info("server started")
+
 	quit := make(chan os.Signal, 1)
 	defer close(quit)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	defer signal.Stop(quit)
 	<-quit
+	log.Info("server stopped")
 }

@@ -7,15 +7,15 @@ import (
 	"time"
 )
 
-type HttpServer struct {
+type Server struct {
 	svr http.Server
 }
 
-func NewHttpServer(hostPort string, r *router.GinFactory, rTimeout time.Duration,
-	wTimeout time.Duration, iTimeout time.Duration) *HttpServer {
-	return &HttpServer{
+func NewHttpServer(endpoint string, r *router.GinFactory, rTimeout time.Duration,
+	wTimeout time.Duration, iTimeout time.Duration) *Server {
+	return &Server{
 		svr: http.Server{
-			Addr:         hostPort,
+			Addr:         endpoint,
 			Handler:      r.CreateRouter(),
 			ReadTimeout:  rTimeout,
 			WriteTimeout: wTimeout,
@@ -24,11 +24,11 @@ func NewHttpServer(hostPort string, r *router.GinFactory, rTimeout time.Duration
 	}
 }
 
-func (s *HttpServer) Start() error {
+func (s *Server) Start() error {
 	return s.svr.ListenAndServe()
 }
 
-func (s *HttpServer) Close(t time.Duration) error {
+func (s *Server) Close(t time.Duration) error {
 	ctx, cancel := context.WithTimeout(context.Background(), t)
 	defer cancel()
 	return s.svr.Shutdown(ctx)

@@ -112,13 +112,13 @@ func normalizeParams(maxRunning, maxWaiting, retryAfter int64) (int64, int64, in
 
 	if maxWaiting < 1 {
 		log.Warn("maxWaiting should be > 1: replacing with defaultMaxWait",
-			"maxRunning", maxRunning, "defaultMaxWait", defaultMaxWait)
+			"maxWaiting", maxWaiting, "defaultMaxWait", defaultMaxWait)
 		maxWaiting = defaultMaxWait
 	}
 
 	if retryAfter < 1 {
 		log.Warn("retryAfter should be > 1: replacing with defaultRetryAfter",
-			"maxRunning", maxRunning, "defaultRetryAfter", defaultRetryAfter)
+			"retryAfter", retryAfter, "defaultRetryAfter", defaultRetryAfter)
 		retryAfter = defaultRetryAfter
 	}
 
