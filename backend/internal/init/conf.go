@@ -1,12 +1,13 @@
 package init
 
 import (
-	"github.com/KennyMacCormik/otel/otel-common/conf/gin_conf"
-	"github.com/KennyMacCormik/otel/otel-common/conf/http_conf"
-	"github.com/KennyMacCormik/otel/otel-common/conf/logger_conf"
-	"github.com/KennyMacCormik/otel/otel-common/conf/otel_config"
-	"github.com/KennyMacCormik/otel/otel-common/conf/rate_limiter_conf"
 	"time"
+
+	"github.com/KennyMacCormik/otel/backend/pkg/conf/gin_conf"
+	"github.com/KennyMacCormik/otel/backend/pkg/conf/http_conf"
+	"github.com/KennyMacCormik/otel/backend/pkg/conf/logger_conf"
+	"github.com/KennyMacCormik/otel/backend/pkg/conf/otel_config"
+	"github.com/KennyMacCormik/otel/backend/pkg/conf/rate_limiter_conf"
 )
 
 type Config struct {

@@ -3,16 +3,18 @@ package init
 import (
 	"context"
 	"fmt"
-	"github.com/KennyMacCormik/HerdMaster/pkg/conv"
+	"log"
+	"log/slog"
+
+	"github.com/KennyMacCormik/common/conv"
 	customLogger "github.com/KennyMacCormik/common/log"
+
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
-	"log"
-	"log/slog"
 )
 
 const otelServiceName = "backend"

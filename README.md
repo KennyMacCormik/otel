@@ -101,15 +101,15 @@ curl --location 'http://localhost:8080/storage/testKey' \
 
 ## TODO
 
-- Add Swagger/OpenAPI documentation for the API and Backend endpoints.
-- Define app behavior in more details
+- Add Swagger/OpenAPI documentation for the API and Backend endpoints (api, ~~backend~~, ~~otel-common~~)
+- Define app behavior in more details (api, ~~backend~~, ~~otel-common~~)
 - Add prometheus exporter
-- Fix main.go to remove useless comments and add emtpy strings
-- Sort imports (Golnad have settings for that)
-- Add linters (https://golangci-lint.run/usage/linters/)
-- Change myinit name
-- Change module name to repo name
-- Add run and close funcs to http server
+- Fix main.go (and all other files too) to remove useless comments and add emtpy strings (api, ~~backend~~, otel-common)
+- Sort imports (Golnad have settings for that) (api, ~~backend~~, otel-common)
+- Add [linters](https://golangci-lint.run/usage/linters/)
+- Change myinit name (api, ~~backend~~, otel-common)
+- Change module name (`module backend`) to repo name (`module github.com/KennyMacCormik/otel/backend`) (api, ~~backend~~, ~~otel-common~~)
+- Add run and close funcs to http server (api, ~~backend~~, ~~otel-common~~)
 - Remove goroutine and closer return from InitServer()
 - Change cfg package according to recommendations (https://github.com/katyafirstova/auth_service/tree/week_2)
 - Change file naming to snake_case

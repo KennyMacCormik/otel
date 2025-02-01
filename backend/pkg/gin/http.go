@@ -2,16 +2,17 @@ package http
 
 import (
 	"context"
-	"github.com/KennyMacCormik/HerdMaster/pkg/gin/router"
 	"net/http"
 	"time"
+
+	"github.com/KennyMacCormik/common/gin_factory"
 )
 
 type Server struct {
 	svr http.Server
 }
 
-func NewHttpServer(endpoint string, r *router.GinFactory, rTimeout time.Duration,
+func NewHttpServer(endpoint string, r *gin_factory.GinFactory, rTimeout time.Duration,
 	wTimeout time.Duration, iTimeout time.Duration) *Server {
 	return &Server{
 		svr: http.Server{

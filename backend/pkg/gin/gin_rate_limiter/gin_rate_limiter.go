@@ -1,13 +1,15 @@
 package gin_rate_limiter
 
 import (
-	"github.com/KennyMacCormik/common/log"
-	"github.com/KennyMacCormik/otel/otel-common/gin/gin_request_id"
-	"github.com/gin-gonic/gin"
 	"log/slog"
 	"net/http"
 	"strconv"
 	"sync/atomic"
+
+	"github.com/KennyMacCormik/common/log"
+	"github.com/gin-gonic/gin"
+
+	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
 )
 
 const (

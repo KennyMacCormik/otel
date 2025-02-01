@@ -4,13 +4,15 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/KennyMacCormik/common/log"
-	initApp "github.com/KennyMacCormik/otel/backend/internal/init"
-	"github.com/KennyMacCormik/otel/backend/internal/storage"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/KennyMacCormik/common/log"
+
+	initApp "github.com/KennyMacCormik/otel/backend/internal/init"
+	"github.com/KennyMacCormik/otel/backend/internal/storage"
 )
 
 const errExit = 1
@@ -19,8 +21,7 @@ func main() {
 	conf := initApp.GetConfig()
 	if conf == nil {
 		log.Error("failed to initialize config")
-		os.Exit(errExit)
-
+		gracefulStop()
 	}
 
 	log.Configure(log.WithLogLevel(conf.Log.Level))
@@ -31,7 +32,7 @@ func main() {
 	tp, err := initApp.OTelInit(context.Background(), conf)
 	if err != nil {
 		log.Error("failed to initialize OTel", "error", err)
-		os.Exit(errExit)
+		gracefulStop()
 	}
 	log.Info("OTel initialized")
 	defer func() {
@@ -60,7 +61,7 @@ func main() {
 		if err != nil {
 			if !errors.Is(err, http.ErrServerClosed) {
 				log.Error("Failed to start server", "error", err)
-				os.Exit(errExit)
+				gracefulStop()
 			}
 		}
 	}()
@@ -72,4 +73,8 @@ func main() {
 	defer signal.Stop(quit)
 	<-quit
 	log.Info("server stopped")
+}
+
+func gracefulStop() {
+	_ = syscall.Kill(os.Getpid(), syscall.SIGTERM)
 }

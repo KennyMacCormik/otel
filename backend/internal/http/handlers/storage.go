@@ -3,12 +3,14 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache"
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"net/http"
+
+	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
 
 var (
@@ -26,10 +28,10 @@ type errorMsg struct {
 	Err string `json:"err"`
 }
 
-//func logErrorAndTraceEvent(err error, msg string, span trace.Span, lg *slog.Logger) {
+// func logErrorAndTraceEvent(err error, msg string, span trace.Span, lg *slog.Logger) {
 //	span.AddEvent(msg, trace.WithAttributes(attribute.String("error", err.Error())))
 //	lg.Error(msg, "error", err)
-//}
+// }
 
 func NewStorageHandlers(st cache.Interface) func(*gin.Engine) {
 	return func(router *gin.Engine) {
@@ -64,29 +66,29 @@ func get(st cache.Interface) func(c *gin.Context) {
 		span := startSpan(c, traceName, spanName)
 		defer span.End()
 		// prep
-		//requestId, err := middleware.GetRequestIDFromCtx(c)
-		//newLg := middleware.LogReq(c, requestId, lg, false)
-		//if err != nil {
+		// requestId, err := middleware.GetRequestIDFromCtx(c)
+		// newLg := middleware.LogReq(c, requestId, lg, false)
+		// if err != nil {
 		//	logErrorAndTraceEvent(err, "cannot get request id from context", span, newLg)
-		//}
+		// }
 		// get key
 		key, err := getKey(c)
 		if err != nil {
-			//logErrorAndTraceEvent(err, "failed to get key", span, newLg)
+			// logErrorAndTraceEvent(err, "failed to get key", span, newLg)
 			c.JSON(http.StatusBadRequest, errStatusBadRequest)
 			return
 		}
 		span.SetAttributes(attribute.String("key", key))
-		//newLg.Debug("decoded key", "key", key)
+		// newLg.Debug("decoded key", "key", key)
 		// invoke request
 		val, err := st.Get(c.Request.Context(), key)
 		if err != nil {
 			if errors.Is(err, cache.ErrNotFound) {
-				//logErrorAndTraceEvent(err, "key not found", span, newLg)
+				// logErrorAndTraceEvent(err, "key not found", span, newLg)
 				c.JSON(http.StatusNotFound, errStatusNotFound)
 				return
 			}
-			//logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
+			// logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
 			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
 			return
 		}
@@ -106,25 +108,25 @@ func set(st cache.Interface) func(c *gin.Context) {
 		span := startSpan(c, traceName, spanName)
 		defer span.End()
 		// prep
-		//id, err := middleware.GetRequestIDFromCtx(c)
-		//newLg := middleware.LogReq(c, id, lg, false)
-		//if err != nil {
+		// id, err := middleware.GetRequestIDFromCtx(c)
+		// newLg := middleware.LogReq(c, id, lg, false)
+		// if err != nil {
 		//	logErrorAndTraceEvent(err, "cannot get request id from context", span, newLg)
-		//}
+		// }
 		b := &body{}
 		// get body
 		err := c.ShouldBindJSON(&b)
 		if err != nil {
-			//logErrorAndTraceEvent(err, "cannot get body from request", span, newLg)
+			// logErrorAndTraceEvent(err, "cannot get body from request", span, newLg)
 			c.JSON(http.StatusBadRequest, errStatusBadRequest)
 			return
 		}
 		span.SetAttributes(attribute.String("key", b.Key), attribute.String("value", b.Val))
-		//newLg.Debug("request body", "key", b.Key, "value", b.Val)
+		// newLg.Debug("request body", "key", b.Key, "value", b.Val)
 		// invoke request
 		err = st.Set(c.Request.Context(), b.Key, b.Val)
 		if err != nil {
-			//logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
+			// logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
 			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
 			return
 		}
@@ -143,24 +145,24 @@ func del(st cache.Interface) func(c *gin.Context) {
 		span := startSpan(c, traceName, spanName)
 		defer span.End()
 		// prep
-		//requestId, err := middleware.GetRequestIDFromCtx(c)
-		//newLg := middleware.LogReq(c, requestId, lg, false)
-		//if err != nil {
+		// requestId, err := middleware.GetRequestIDFromCtx(c)
+		// newLg := middleware.LogReq(c, requestId, lg, false)
+		// if err != nil {
 		//	logErrorAndTraceEvent(err, "cannot get request id from context", span, newLg)
-		//}
+		// }
 		// get key
 		key, err := getKey(c)
 		if err != nil {
-			//logErrorAndTraceEvent(err, "failed to get key", span, newLg)
+			// logErrorAndTraceEvent(err, "failed to get key", span, newLg)
 			c.JSON(http.StatusBadRequest, errStatusBadRequest)
 			return
 		}
 		span.SetAttributes(attribute.String("key", key))
-		//newLg.Debug("decoded key", "key", key)
+		// newLg.Debug("decoded key", "key", key)
 		// invoke request
 		err = st.Delete(c.Request.Context(), key)
 		if err != nil {
-			//logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
+			// logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
 			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
 			return
 		}

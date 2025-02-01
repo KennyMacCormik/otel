@@ -1,8 +1,8 @@
 package storage
 
 import (
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache"
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache/impl/syncMap"
+	"github.com/KennyMacCormik/otel/backend/pkg/cache"
+	"github.com/KennyMacCormik/otel/backend/pkg/cache/impl/syncMap"
 )
 
 func NewStorage() cache.Interface {

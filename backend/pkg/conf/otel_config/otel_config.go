@@ -1,11 +1,13 @@
 package otel_config
 
 import (
+	"time"
+
 	"github.com/KennyMacCormik/common/log"
 	"github.com/KennyMacCormik/common/val"
-	"github.com/KennyMacCormik/otel/otel-common/conf"
 	"github.com/spf13/viper"
-	"time"
+
+	"github.com/KennyMacCormik/otel/backend/pkg/conf"
 )
 
 type otelConfig struct {

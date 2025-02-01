@@ -3,8 +3,9 @@ package rate_limiter_conf
 import (
 	"github.com/KennyMacCormik/common/log"
 	"github.com/KennyMacCormik/common/val"
-	"github.com/KennyMacCormik/otel/otel-common/conf"
 	"github.com/spf13/viper"
+
+	"github.com/KennyMacCormik/otel/backend/pkg/conf"
 )
 
 type rateLimiterConfig struct {
