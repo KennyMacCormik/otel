@@ -11,7 +11,7 @@ import (
 )
 
 type httpConf struct {
-	HttpHost            string        `mapstructure:"http_host" validate:"ip4_addr|hostname_rfc1123,required"`
+	HttpHost            string        `mapstructure:"http_host" validate:"ip4_addr|fqdn,required"`
 	HttpPort            int           `mapstructure:"http_port" validate:"numeric,gt=1024,lt=65536,required"`
 	HttpReadTimeout     time.Duration `mapstructure:"http_read_timeout" validate:"min=100ms,max=1s"`
 	HttpWriteTimeout    time.Duration `mapstructure:"http_write_timeout" validate:"min=100ms,max=1s"`
