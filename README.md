@@ -118,8 +118,8 @@ curl --location 'http://localhost:8080/storage/testKey' \
 - Add empty strings everywhere (api, ~~backend~~)
 - Make logger global (refactor log package) (api, ~~backend~~)
 - Review http response codes (201, 204) (api, ~~backend~~)
-- Add structs and interfaces for handlers
-- Do not use "Interface" and "layer" as names
+- Add structs and interfaces for handlers (api, ~~backend~~)
+- Do not use "Interface" and "layer" as names (api, ~~backend~~)
 - Add TTL tests for cache
 - Fix compute.Get()
   - Remove unnecessary else

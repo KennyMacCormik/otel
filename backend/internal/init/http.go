@@ -33,11 +33,14 @@ func initRouter(conf *Config, st cache.CacheInterface) *gin_factory.GinFactory {
 		middleware.GetTraceParent(),
 		otelgin.Middleware(otelGinMiddlewareName),
 		gin_request_id.RequestIDMiddleware(),
-		gin_rate_limiter.NewRateLimiter(conf.RateLimiter.MaxRunning,
-			conf.RateLimiter.MaxWait, conf.RateLimiter.RetryAfter).GetRateLimiter(),
+		gin_rate_limiter.NewRateLimiter(
+			conf.RateLimiter.MaxRunning,
+			conf.RateLimiter.MaxWait,
+			conf.RateLimiter.RetryAfter,
+		).GetRateLimiter(),
 	)
 
-	ginFactory.AddHandlers(storage.NewStorageHandlers(st))
+	ginFactory.AddHandlers(storage.NewStorageHandler(st).GetGinStorageHandler())
 
 	return ginFactory
 }

@@ -25,36 +25,23 @@ type errorMsg struct {
 	Err string `json:"err"`
 }
 
-// func logErrorAndTraceEvent(err error, msg string, span trace.Span, lg *slog.Logger) {
-//	span.AddEvent(msg, trace.WithAttributes(attribute.String("error", err.Error())))
-//	lg.Error(msg, "error", err)
-// }
+type StorageHandler struct {
+	st cache.CacheInterface
+}
 
-func NewStorageHandlers(st cache.CacheInterface) func(*gin.Engine) {
+func NewStorageHandler(st cache.CacheInterface) *StorageHandler {
+	return &StorageHandler{st: st}
+}
+
+func (s *StorageHandler) GetGinStorageHandler() func(*gin.Engine) {
 	return func(router *gin.Engine) {
-		router.GET("/storage/:key", get(st))
-		router.PUT("/storage", set(st))
-		router.DELETE("/storage/:key", del(st))
+		router.GET("/storage/:key", s.ginGet())
+		router.PUT("/storage", s.ginSet())
+		router.DELETE("/storage/:key", s.ginDel())
 	}
 }
 
-// func startSpan(c *gin.Context, traceName, spanName string) trace.Span {
-// 	tracer := otel.Tracer(traceName)
-// 	ctx, span := tracer.Start(c.Request.Context(), spanName)
-// 	c.Request = c.Request.WithContext(ctx)
-// 	return span
-// }
-
-func getKey(c *gin.Context) (string, error) {
-	key := c.Param("key")
-	if key == "" {
-		return "", fmt.Errorf("no key provided")
-	}
-
-	return key, nil
-}
-
-func get(st cache.CacheInterface) func(c *gin.Context) {
+func (s *StorageHandler) ginGet() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		// const (
 		// 	traceName = "backend/http/get"
@@ -79,7 +66,7 @@ func get(st cache.CacheInterface) func(c *gin.Context) {
 		// span.SetAttributes(attribute.String("key", key))
 		// newLg.Debug("decoded key", "key", key)
 		// invoke request
-		val, err := st.Get(c.Request.Context(), key)
+		val, err := s.st.Get(c.Request.Context(), key)
 		if err != nil {
 			if errors.Is(err, cache.ErrNotFound) {
 				// logErrorAndTraceEvent(err, "key not found", span, newLg)
@@ -96,7 +83,7 @@ func get(st cache.CacheInterface) func(c *gin.Context) {
 	}
 }
 
-func set(st cache.CacheInterface) func(c *gin.Context) {
+func (s *StorageHandler) ginSet() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		// const (
 		// 	traceName = "backend/http/set"
@@ -121,7 +108,7 @@ func set(st cache.CacheInterface) func(c *gin.Context) {
 		// span.SetAttributes(attribute.String("key", b.Key), attribute.String("value", b.Val))
 		// newLg.Debug("request body", "key", b.Key, "value", b.Val)
 		// invoke request
-		code, err := st.Set(c.Request.Context(), b.Key, b.Val)
+		code, err := s.st.Set(c.Request.Context(), b.Key, b.Val)
 		if err != nil {
 			// logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
 			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
@@ -132,7 +119,7 @@ func set(st cache.CacheInterface) func(c *gin.Context) {
 	}
 }
 
-func del(st cache.CacheInterface) func(c *gin.Context) {
+func (s *StorageHandler) ginDel() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		// const (
 		// 	traceName = "backend/http/set"
@@ -157,7 +144,7 @@ func del(st cache.CacheInterface) func(c *gin.Context) {
 		// span.SetAttributes(attribute.String("key", key))
 		// newLg.Debug("decoded key", "key", key)
 		// invoke request
-		err = st.Delete(c.Request.Context(), key)
+		err = s.st.Delete(c.Request.Context(), key)
 		if err != nil {
 			// logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
 			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
@@ -167,3 +154,24 @@ func del(st cache.CacheInterface) func(c *gin.Context) {
 		c.JSON(http.StatusNoContent, "ok")
 	}
 }
+
+func getKey(c *gin.Context) (string, error) {
+	key := c.Param("key")
+	if key == "" {
+		return "", fmt.Errorf("no key provided")
+	}
+
+	return key, nil
+}
+
+//	func logErrorAndTraceEvent(err error, msg string, span trace.Span, lg *slog.Logger) {
+//		span.AddEvent(msg, trace.WithAttributes(attribute.String("error", err.Error())))
+//		lg.Error(msg, "error", err)
+//	}
+
+// func startSpan(c *gin.Context, traceName, spanName string) trace.Span {
+// 	tracer := otel.Tracer(traceName)
+// 	ctx, span := tracer.Start(c.Request.Context(), spanName)
+// 	c.Request = c.Request.WithContext(ctx)
+// 	return span
+// }
