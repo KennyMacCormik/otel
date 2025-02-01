@@ -13,6 +13,8 @@ import (
 
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 	cache2 "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
+	ttlCacheErrors "github.com/KennyMacCormik/otel/backend/pkg/models/errors/ttl_cache"
+	ttlCacheModels "github.com/KennyMacCormik/otel/backend/pkg/models/ttl_cache"
 
 	mockCache "github.com/KennyMacCormik/otel/backend/pkg/cache/mocks"
 )
@@ -213,7 +215,7 @@ func TestTtlCache_GetKeys(t *testing.T) {
 
 func TestTtlCache_Get(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
-		value1 := cacheEntry{"value1", time.Now().Add(10 * time.Second)}
+		value1 := ttlCacheModels.TtlCacheEntry{"value1", time.Now().Add(10 * time.Second)}
 		c, ttl := getTtlCacheMock(t)
 		c.EXPECT().Get(mock.Anything, "key1").Return(&value1, nil)
 		val, err := ttl.Get(context.Background(), "key1")
@@ -231,7 +233,7 @@ func TestTtlCache_Get(t *testing.T) {
 	})
 
 	t.Run("expired", func(t *testing.T) {
-		value1 := cacheEntry{"value1", time.Now().Add(-10 * time.Second)}
+		value1 := ttlCacheModels.TtlCacheEntry{"value1", time.Now().Add(-10 * time.Second)}
 		c, ttl := getTtlCacheMock(t)
 		c.EXPECT().Get(mock.Anything, "key1").Return(&value1, nil)
 		val, err := ttl.Get(context.Background(), "key1")
@@ -391,7 +393,7 @@ func TestErrTimeout(t *testing.T) {
 		assert.Equal(t, key, errTimeout.GetKey(), "key should match the input value")
 		assert.Equal(t, callerInfo, errTimeout.GetCallerInfo(), "callerInfo should match the input value")
 		assert.Equal(t, expirationTime, errTimeout.GetTtl(), "expirationTime should match the input value")
-		assert.Equal(t, ErrExpired, errTimeout.Unwrap(), "signalErr should match ErrExpired")
+		assert.Equal(t, ttlCacheErrors.ErrExpired, errTimeout.Unwrap(), "signalErr should match ErrExpired")
 	})
 
 	t.Run("error message formatting", func(t *testing.T) {
@@ -400,7 +402,7 @@ func TestErrTimeout(t *testing.T) {
 		expirationTime := time.Now()
 
 		errTimeout := NewErrTimeout(key, callerInfo, expirationTime)
-		expectedMessage := fmt.Sprintf("%s: key [%s] ttl [%s]: %s", callerInfo, key, expirationTime, ErrExpired)
+		expectedMessage := fmt.Sprintf("%s: key [%s] ttl [%s]: %s", callerInfo, key, expirationTime, ttlCacheErrors.ErrExpired)
 
 		assert.EqualError(t, errTimeout, expectedMessage, "Error message should match the expected format")
 	})
@@ -434,7 +436,7 @@ func TestErrTimeout(t *testing.T) {
 
 		errTimeout := NewErrTimeout(key, callerInfo, expirationTime)
 
-		assert.Equal(t, ErrExpired, errTimeout.Unwrap(), "Unwrap should return ErrExpired")
+		assert.Equal(t, ttlCacheErrors.ErrExpired, errTimeout.Unwrap(), "Unwrap should return ErrExpired")
 	})
 }
 
@@ -461,7 +463,7 @@ func TestTtlCache_ExpireCache(t *testing.T) {
 		c, ttl := getTtlCacheMock(t, WithOverrideDefaults(3*time.Second, 500*time.Millisecond, 1*time.Second, 100*time.Millisecond, 10))
 		c.EXPECT().GetKeys(mock.Anything).Return([]string{"key1"}, nil)
 		c.EXPECT().Get(mock.Anything, "key1").Return(
-			&cacheEntry{
+			&ttlCacheModels.TtlCacheEntry{
 				"expiredValue",
 				time.Now().Add(1 * time.Second),
 			},
