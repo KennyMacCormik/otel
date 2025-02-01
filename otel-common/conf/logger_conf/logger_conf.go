@@ -32,7 +32,7 @@ func NewLoggerConf() conf.LoggerConf {
 		log.Error("Failed to unmarshal loggerConf")
 	}
 
-	err = val.ValidateStruct(*c)
+	err = val.ValidateStruct(c)
 	if err != nil {
 		log.Error("Failed to validate loggerConf", "err", err)
 	}
