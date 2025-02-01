@@ -1,3 +1,76 @@
+# Description
+
+## Overview
+The **Backend API** provides a simple RESTful interface to manage key-value storage. It supports storing, retrieving, and deleting key-value pairs.
+
+## API Endpoints
+
+### **Retrieve a Value by Key**
+- **GET** `/storage/{key}`
+- **Description**: Fetches the stored value for a given key.
+- **Responses**:
+    - `200 OK`: Returns the key-value pair.
+    - `400 Bad Request`: Malformed request.
+    - `404 Not Found`: Key does not exist.
+    - `500 Internal Server Error`: Unexpected server error.
+
+### **Store or Update a Key-Value Pair**
+- **PUT** `/storage`
+- **Description**: Creates or updates a key-value pair.
+- **Request Body**:
+    - `key` (string, required)
+    - `value` (string, required)
+- **Responses**:
+    - `200 OK`: Successfully stored.
+    - `400 Bad Request`: Malformed request.
+    - `500 Internal Server Error`: Unexpected server error.
+
+### **Delete a Key-Value Pair**
+- **DELETE** `/storage/{key}`
+- **Description**: Removes a key-value pair from storage.
+- **Responses**:
+    - `200 OK`: Successfully deleted.
+    - `400 Bad Request`: Malformed request.
+    - `500 Internal Server Error`: Unexpected server error.
+
+## Error Responses
+All error responses follow this structure:
+```json
+{
+  "err": "error message"
+}
+```
+### Common Errors:
+| Status Code | Message                     |
+|-------------|-----------------------------|
+| `400`       | "malformed request"         |
+| `404`       | "not found"                 |
+| `500`       | "internal server error"     |
+
+## OpenTelemetry Integration
+This API integrates with **OpenTelemetry** for distributed tracing, ensuring detailed observability across microservices.
+
+# Build Guide
+
+To build the application, specify the target OS, architecture, and output executable name, use:
+
+```sh
+CGO_ENABLED=0 GOOS=<TARGET_OS> GOARCH=<TARGET_ARCH> go build -o <OUTPUT_EXEC_NAME>
+```
+
+## Parameters
+
+- `GOOS` – Specifies the target operating system (e.g., `linux`, `windows`, `darwin`).
+- `GOARCH` – Specifies the target architecture (e.g., `amd64`, `arm64`).
+
+## Example
+
+Building for Linux with AMD64 architecture:
+
+```sh
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o backend
+```
+
 # Configuration Guide
 
 This section outlines available environment variables to configure the backend server. These variables allow fine-tuned control over server behavior, logging, tracing, and rate-limiting mechanisms.
