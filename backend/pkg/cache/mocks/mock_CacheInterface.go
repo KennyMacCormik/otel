@@ -287,21 +287,31 @@ func (_c *MockCacheInterface_GetLength_Call) RunAndReturn(run func() (int64, err
 }
 
 // Set provides a mock function with given fields: ctx, key, value
-func (_m *MockCacheInterface) Set(ctx context.Context, key string, value any) error {
+func (_m *MockCacheInterface) Set(ctx context.Context, key string, value any) (int, error) {
 	ret := _m.Called(ctx, key, value)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Set")
 	}
 
-	var r0 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, any) error); ok {
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, any) (int, error)); ok {
+		return rf(ctx, key, value)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, any) int); ok {
 		r0 = rf(ctx, key, value)
 	} else {
-		r0 = ret.Error(0)
+		r0 = ret.Get(0).(int)
 	}
 
-	return r0
+	if rf, ok := ret.Get(1).(func(context.Context, string, any) error); ok {
+		r1 = rf(ctx, key, value)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // MockCacheInterface_Set_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Set'
@@ -324,12 +334,12 @@ func (_c *MockCacheInterface_Set_Call) Run(run func(ctx context.Context, key str
 	return _c
 }
 
-func (_c *MockCacheInterface_Set_Call) Return(_a0 error) *MockCacheInterface_Set_Call {
-	_c.Call.Return(_a0)
+func (_c *MockCacheInterface_Set_Call) Return(_a0 int, _a1 error) *MockCacheInterface_Set_Call {
+	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *MockCacheInterface_Set_Call) RunAndReturn(run func(context.Context, string, any) error) *MockCacheInterface_Set_Call {
+func (_c *MockCacheInterface_Set_Call) RunAndReturn(run func(context.Context, string, any) (int, error)) *MockCacheInterface_Set_Call {
 	_c.Call.Return(run)
 	return _c
 }

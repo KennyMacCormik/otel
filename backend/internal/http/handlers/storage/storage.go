@@ -121,14 +121,14 @@ func set(st cache.CacheInterface) func(c *gin.Context) {
 		// span.SetAttributes(attribute.String("key", b.Key), attribute.String("value", b.Val))
 		// newLg.Debug("request body", "key", b.Key, "value", b.Val)
 		// invoke request
-		err = st.Set(c.Request.Context(), b.Key, b.Val)
+		code, err := st.Set(c.Request.Context(), b.Key, b.Val)
 		if err != nil {
 			// logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
 			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
 			return
 		}
 
-		c.JSON(http.StatusOK, "ok")
+		c.JSON(int(code), "ok")
 	}
 }
 
@@ -164,6 +164,6 @@ func del(st cache.CacheInterface) func(c *gin.Context) {
 			return
 		}
 
-		c.JSON(http.StatusOK, "ok")
+		c.JSON(http.StatusNoContent, "ok")
 	}
 }

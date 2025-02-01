@@ -95,7 +95,7 @@ func (s *shardedCache) Get(ctx context.Context, key string) (any, error) {
 	return s.shards[getShardNumber(key, s.shardNumber)].Get(ctx, key)
 }
 
-func (s *shardedCache) Set(ctx context.Context, key string, value any) error {
+func (s *shardedCache) Set(ctx context.Context, key string, value any) (int, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 
@@ -107,7 +107,7 @@ func (s *shardedCache) Set(ctx context.Context, key string, value any) error {
 		cache.WithKeyValidation(key, wrap),
 		cache.WithValueValidation(value, wrap),
 	); err != nil {
-		return err
+		return 0, err
 	}
 
 	return s.shards[getShardNumber(key, s.shardNumber)].Set(ctx, key, value)

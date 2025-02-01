@@ -129,7 +129,7 @@ func (t *ttlCache) Get(ctx context.Context, key string) (any, error) {
 	return castedValue.Value, nil
 }
 
-func (t *ttlCache) Set(ctx context.Context, key string, value any) error {
+func (t *ttlCache) Set(ctx context.Context, key string, value any) (int, error) {
 	const wrap = "ttlCache/Set"
 	if err := cache.ValidateInput(
 		cache.WithClosedValidation(&t.closed, wrap),
@@ -137,7 +137,7 @@ func (t *ttlCache) Set(ctx context.Context, key string, value any) error {
 		cache.WithKeyValidation(key, wrap),
 		cache.WithValueValidation(value, wrap),
 	); err != nil {
-		return err
+		return 0, err
 	}
 
 	return t.impl.Set(ctx, key, &cacheEntry{Value: value, ExpiresAt: t.getTtl()})

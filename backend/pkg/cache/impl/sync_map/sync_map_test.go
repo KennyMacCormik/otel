@@ -61,15 +61,44 @@ func TestSyncMap_Set(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		sm := typeCastCache(t, initSyncMap())
 
-		err := sm.Set(context.Background(), "key1", "value1")
-		require.NoError(t, err, "Shall return no error for valid input")
+		t.Run("201", func(t *testing.T) {
+			code, err := sm.Set(context.Background(), "key1", "value1")
+			require.NoError(t, err, "Shall return no error for valid input")
+			assert.Equal(t, code, 201, "Shall return code 201")
 
-		length := 0
-		sm.m.Range(func(_, _ any) bool {
-			length++
-			return true
+			length := 0
+			sm.m.Range(func(_, _ any) bool {
+				length++
+				return true
+			})
+			assert.Equal(t, 1, length, "Cache shall store supplied value")
 		})
-		assert.Equal(t, 1, length, "Cache shall store supplied value")
+
+		t.Run("204", func(t *testing.T) {
+			code, err := sm.Set(context.Background(), "key1", "value1")
+			require.NoError(t, err, "Shall return no error for valid input")
+			assert.Equal(t, code, 204, "Shall return code 204")
+
+			length := 0
+			sm.m.Range(func(_, _ any) bool {
+				length++
+				return true
+			})
+			assert.Equal(t, 1, length, "Same length shall be stored")
+		})
+
+		t.Run("200", func(t *testing.T) {
+			code, err := sm.Set(context.Background(), "key1", "value2")
+			require.NoError(t, err, "Shall return no error for valid input")
+			assert.Equal(t, code, 200, "Shall return code 200")
+
+			length := 0
+			sm.m.Range(func(_, _ any) bool {
+				length++
+				return true
+			})
+			assert.Equal(t, 1, length, "Same length shall be stored")
+		})
 	})
 
 	t.Run("cache closed", func(t *testing.T) {
@@ -77,7 +106,7 @@ func TestSyncMap_Set(t *testing.T) {
 		err := sm.Close(context.Background())
 		require.NoError(t, err, "Shall return no error for Close()")
 
-		err = sm.Set(context.Background(), "key1", "value1")
+		_, err = sm.Set(context.Background(), "key1", "value1")
 		require.Error(t, err, "Shall return error for closed cache")
 		assert.ErrorIs(t, err, cache.ErrCacheClosed, "Shall return cache.ErrCacheClosed")
 
@@ -93,7 +122,7 @@ func TestSyncMap_Set(t *testing.T) {
 		t.Run("nil ctx", func(t *testing.T) {
 			sm := typeCastCache(t, initSyncMap())
 
-			err := sm.Set(nil, "key1", "value1")
+			_, err := sm.Set(nil, "key1", "value1")
 			require.Error(t, err, "Shall return error for nil ctx")
 			assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", nil), "Shall return cache.ErrCtx")
 
@@ -113,7 +142,7 @@ func TestSyncMap_Set(t *testing.T) {
 
 			time.Sleep(3 * time.Nanosecond)
 
-			err := sm.Set(ctx, "key1", "value1")
+			_, err := sm.Set(ctx, "key1", "value1")
 			require.Error(t, err, "Shall return error for closed ctx")
 			assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", ctx), "Shall return cache.ErrCtx")
 
@@ -129,7 +158,7 @@ func TestSyncMap_Set(t *testing.T) {
 	t.Run("empty key", func(t *testing.T) {
 		sm := typeCastCache(t, initSyncMap())
 
-		err := sm.Set(context.Background(), "", "value1")
+		_, err := sm.Set(context.Background(), "", "value1")
 		require.Error(t, err, "Shall return error empty key")
 		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrEmptyString, ""), "Shall return cache.ErrInvalidValue")
 
@@ -144,7 +173,7 @@ func TestSyncMap_Set(t *testing.T) {
 	t.Run("nil value", func(t *testing.T) {
 		sm := typeCastCache(t, initSyncMap())
 
-		err := sm.Set(context.Background(), "key1", nil)
+		_, err := sm.Set(context.Background(), "key1", nil)
 		require.Error(t, err, "Shall return error empty key")
 		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrNil, ""), "Shall return cache.ErrInvalidValue")
 
@@ -160,7 +189,8 @@ func TestSyncMap_Set(t *testing.T) {
 func TestSyncMap_Delete(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		sm := typeCastCache(t, initSyncMap())
-		err := sm.Set(context.Background(), "key1", "value1")
+
+		_, err := sm.Set(context.Background(), "key1", "value1")
 		require.NoError(t, err, "Shall return no error for valid input")
 
 		err = sm.Delete(context.Background(), "key1")
@@ -176,7 +206,8 @@ func TestSyncMap_Delete(t *testing.T) {
 
 	t.Run("negative", func(t *testing.T) {
 		sm := typeCastCache(t, initSyncMap())
-		err := sm.Set(context.Background(), "key1", "value1")
+
+		_, err := sm.Set(context.Background(), "key1", "value1")
 		require.NoError(t, err, "Shall return no error for valid input")
 
 		err = sm.Delete(context.Background(), "key2")
@@ -192,7 +223,8 @@ func TestSyncMap_Delete(t *testing.T) {
 
 	t.Run("closed", func(t *testing.T) {
 		sm := typeCastCache(t, initSyncMap())
-		err := sm.Set(context.Background(), "key1", "value1")
+
+		_, err := sm.Set(context.Background(), "key1", "value1")
 		require.NoError(t, err, "Shall return no error for valid input")
 
 		err = sm.Close(context.Background())
@@ -206,7 +238,8 @@ func TestSyncMap_Delete(t *testing.T) {
 	t.Run("incorrect ctx", func(t *testing.T) {
 		t.Run("nil ctx", func(t *testing.T) {
 			sm := typeCastCache(t, initSyncMap())
-			err := sm.Set(context.Background(), "key1", "value1")
+
+			_, err := sm.Set(context.Background(), "key1", "value1")
 			require.NoError(t, err, "Shall return no error for valid input")
 
 			err = sm.Delete(nil, "key1")
@@ -216,7 +249,8 @@ func TestSyncMap_Delete(t *testing.T) {
 
 		t.Run("expired ctx", func(t *testing.T) {
 			sm := typeCastCache(t, initSyncMap())
-			err := sm.Set(context.Background(), "key1", "value1")
+
+			_, err := sm.Set(context.Background(), "key1", "value1")
 			require.NoError(t, err, "Shall return no error for valid input")
 
 			ctx, cancel := context.WithTimeout(context.Background(), 1*time.Nanosecond)
@@ -232,7 +266,8 @@ func TestSyncMap_Delete(t *testing.T) {
 
 	t.Run("empty key", func(t *testing.T) {
 		sm := typeCastCache(t, initSyncMap())
-		err := sm.Set(context.Background(), "key1", "value1")
+
+		_, err := sm.Set(context.Background(), "key1", "value1")
 		require.NoError(t, err, "Shall return no error for valid input")
 
 		err = sm.Delete(context.Background(), "")
@@ -244,7 +279,8 @@ func TestSyncMap_Delete(t *testing.T) {
 func TestSyncMap_Get(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		sm := typeCastCache(t, initSyncMap())
-		err := sm.Set(context.Background(), "key1", "value1")
+
+		_, err := sm.Set(context.Background(), "key1", "value1")
 		require.NoError(t, err, "Shall return no error for valid input")
 
 		val, err := sm.Get(context.Background(), "key1")
@@ -262,7 +298,8 @@ func TestSyncMap_Get(t *testing.T) {
 	t.Run("negative", func(t *testing.T) {
 		t.Run("cache full", func(t *testing.T) {
 			sm := typeCastCache(t, initSyncMap())
-			err := sm.Set(context.Background(), "key1", "value1")
+
+			_, err := sm.Set(context.Background(), "key1", "value1")
 			require.NoError(t, err, "Shall return no error for valid input")
 
 			val, err := sm.Get(context.Background(), "key2")
@@ -333,7 +370,8 @@ func TestSyncMap_Get(t *testing.T) {
 
 	t.Run("empty key", func(t *testing.T) {
 		sm := typeCastCache(t, initSyncMap())
-		err := sm.Set(context.Background(), "key1", "value1")
+
+		_, err := sm.Set(context.Background(), "key1", "value1")
 		require.NoError(t, err, "Shall return no error for valid input")
 
 		val, err := sm.Get(context.Background(), "")
@@ -629,7 +667,7 @@ func TestSyncMap_Concurrent(t *testing.T) {
 				defer cancel()
 				key := "key" + strconv.Itoa(i)
 				value := "value" + strconv.Itoa(i)
-				err := sm.Set(ctx, key, value)
+				_, err := sm.Set(ctx, key, value)
 				require.NoError(t, err, "Set should not return an error")
 			})
 		}

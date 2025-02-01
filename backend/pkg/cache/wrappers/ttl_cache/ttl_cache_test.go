@@ -16,6 +16,7 @@ import (
 	mockCache "github.com/KennyMacCormik/otel/backend/pkg/cache/mocks"
 )
 
+// TODO: update SET method tests
 // TODO: add test that TTL works as expected
 
 func getTtlCacheMock(t *testing.T, opts ...InitOptions) (*mockCache.MockCacheInterface, cache.CacheInterface) {
@@ -278,48 +279,61 @@ func TestTtlCache_Get(t *testing.T) {
 func TestTtlCache_Set(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
 		c, ttl := getTtlCacheMock(t)
-		c.EXPECT().Set(mock.Anything, "key1", mock.Anything).Return(nil)
-		err := ttl.Set(context.Background(), "key1", "value1")
+		c.EXPECT().Set(mock.Anything, "key1", mock.Anything).Return(200, nil)
+
+		code, err := ttl.Set(context.Background(), "key1", "value1")
 		require.NoError(t, err, "expect no error with default configuration")
+		assert.Equal(t, 200, code, "expect return same code as in underlying impl")
 	})
 
 	t.Run("negative", func(t *testing.T) {
 		c, ttl := getTtlCacheMock(t)
-		c.EXPECT().Set(mock.Anything, "key1", mock.Anything).Return(assert.AnError)
-		err := ttl.Set(context.Background(), "key1", "value1")
+		c.EXPECT().Set(mock.Anything, "key1", mock.Anything).Return(0, assert.AnError)
+
+		code, err := ttl.Set(context.Background(), "key1", "value1")
 		require.Error(t, err, "expect an error")
 		assert.ErrorIs(t, err, assert.AnError, "expect error to be assert.AnError")
+		assert.Equal(t, 0, code, "expect 0 code for an error")
 	})
 
 	t.Run("closed", func(t *testing.T) {
 		c, ttl := getTtlCacheMock(t)
 		c.EXPECT().Close(mock.Anything).Return(nil)
+
 		err := ttl.Close(context.Background())
 		require.NoError(t, err, "expect no error with cache closed")
-		err = ttl.Set(context.Background(), "key1", "value1")
+
+		code, err := ttl.Set(context.Background(), "key1", "value1")
 		require.Error(t, err, "expect an error")
 		assert.ErrorIs(t, err, cache.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
+		assert.Equal(t, 0, code, "expect 0 code for an error")
 	})
 
 	t.Run("nil ctx", func(t *testing.T) {
 		_, ttl := getTtlCacheMock(t)
-		err := ttl.Set(nil, "key1", "value1")
+
+		code, err := ttl.Set(nil, "key1", "value1")
 		require.Error(t, err, "expect an error")
 		assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
+		assert.Equal(t, 0, code, "expect 0 code for an error")
 	})
 
 	t.Run("empty key", func(t *testing.T) {
 		_, ttl := getTtlCacheMock(t)
-		err := ttl.Set(context.Background(), "", "value1")
+
+		code, err := ttl.Set(context.Background(), "", "value1")
 		require.Error(t, err, "expect an error")
 		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrEmptyString, ""), "expect error to be cache.ErrInvalidValue")
+		assert.Equal(t, 0, code, "expect 0 code for an error")
 	})
 
 	t.Run("empty value", func(t *testing.T) {
 		_, ttl := getTtlCacheMock(t)
-		err := ttl.Set(context.Background(), "key1", nil)
+
+		code, err := ttl.Set(context.Background(), "key1", nil)
 		require.Error(t, err, "expect an error")
 		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrNil, ""), "expect error to be cache.ErrInvalidValue")
+		assert.Equal(t, 0, code, "expect 0 code for an error")
 	})
 }
 

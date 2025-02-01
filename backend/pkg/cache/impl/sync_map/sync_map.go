@@ -72,7 +72,7 @@ func (sm *syncMap) Get(ctx context.Context, key string) (any, error) {
 	return value, nil
 }
 
-func (sm *syncMap) Set(ctx context.Context, key string, value any) error {
+func (sm *syncMap) Set(ctx context.Context, key string, value any) (int, error) {
 	const wrap = "syncMap/Set"
 
 	if err := cache.ValidateInput(
@@ -81,11 +81,23 @@ func (sm *syncMap) Set(ctx context.Context, key string, value any) error {
 		cache.WithKeyValidation(key, wrap),
 		cache.WithValueValidation(value, wrap),
 	); err != nil {
-		return err
+		return 0, err
+	}
+
+	// 201 Created
+	val, ok := sm.m.Load(key)
+	if !ok {
+		sm.m.Store(key, value)
+		return 201, nil
+	}
+
+	// 204 No Content
+	if val == value {
+		return 204, nil
 	}
 
 	sm.m.Store(key, value)
-	return nil
+	return 200, nil
 }
 
 func (sm *syncMap) Delete(ctx context.Context, key string) error {

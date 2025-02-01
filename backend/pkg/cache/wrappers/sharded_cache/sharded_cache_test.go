@@ -13,6 +13,8 @@ import (
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
 
+// TODO: update SET method tests
+
 const testShardNum int64 = 3
 
 func initFunc(t *testing.T) cache.CacheInterface {
