@@ -13,8 +13,9 @@ import (
 )
 
 var (
-	errMalformedRequest = errorMsg{Err: "malformed request"}
-	errInternalServer   = errorMsg{Err: "internal server error"}
+	errStatusNotFound       = errorMsg{Err: "not found"}
+	errStatusBadRequest     = errorMsg{Err: "malformed request"}
+	errStatusInternalServer = errorMsg{Err: "internal server error"}
 )
 
 type body struct {
@@ -35,7 +36,6 @@ func NewStorageHandlers(st cache.Interface) func(*gin.Engine) {
 	return func(router *gin.Engine) {
 		router.GET("/storage/:key", get(st))
 		router.PUT("/storage", set(st))
-		router.POST("/storage", set(st))
 		router.DELETE("/storage/:key", del(st))
 	}
 }
@@ -74,7 +74,7 @@ func get(st cache.Interface) func(c *gin.Context) {
 		key, err := getKey(c)
 		if err != nil {
 			//logErrorAndTraceEvent(err, "failed to get key", span, newLg)
-			c.JSON(http.StatusBadRequest, "failed to get key")
+			c.JSON(http.StatusBadRequest, errStatusBadRequest)
 			return
 		}
 		span.SetAttributes(attribute.String("key", key))
@@ -84,11 +84,11 @@ func get(st cache.Interface) func(c *gin.Context) {
 		if err != nil {
 			if errors.Is(err, cache.ErrNotFound) {
 				//logErrorAndTraceEvent(err, "key not found", span, newLg)
-				c.JSON(http.StatusNotFound, "not found")
+				c.JSON(http.StatusNotFound, errStatusNotFound)
 				return
 			}
 			//logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
-			c.JSON(http.StatusInternalServerError, errorMsg{Err: "server-side error"})
+			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
 			return
 		}
 		// send response
@@ -117,7 +117,7 @@ func set(st cache.Interface) func(c *gin.Context) {
 		err := c.ShouldBindJSON(&b)
 		if err != nil {
 			//logErrorAndTraceEvent(err, "cannot get body from request", span, newLg)
-			c.JSON(http.StatusBadRequest, errMalformedRequest)
+			c.JSON(http.StatusBadRequest, errStatusBadRequest)
 			return
 		}
 		span.SetAttributes(attribute.String("key", b.Key), attribute.String("value", b.Val))
@@ -126,7 +126,7 @@ func set(st cache.Interface) func(c *gin.Context) {
 		err = st.Set(c.Request.Context(), b.Key, b.Val)
 		if err != nil {
 			//logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
-			c.JSON(http.StatusInternalServerError, errInternalServer)
+			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
 			return
 		}
 		// send response
@@ -153,7 +153,7 @@ func del(st cache.Interface) func(c *gin.Context) {
 		key, err := getKey(c)
 		if err != nil {
 			//logErrorAndTraceEvent(err, "failed to get key", span, newLg)
-			c.JSON(http.StatusBadRequest, "failed to get key")
+			c.JSON(http.StatusBadRequest, errStatusBadRequest)
 			return
 		}
 		span.SetAttributes(attribute.String("key", key))
@@ -162,7 +162,7 @@ func del(st cache.Interface) func(c *gin.Context) {
 		err = st.Delete(c.Request.Context(), key)
 		if err != nil {
 			//logErrorAndTraceEvent(err, "error accessing storage", span, newLg)
-			c.JSON(http.StatusInternalServerError, errInternalServer)
+			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
 			return
 		}
 		// send response

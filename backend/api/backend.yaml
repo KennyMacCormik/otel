@@ -1,0 +1,118 @@
+openapi: 3.0.3
+info:
+  title: Backend API
+  description: API for managing key-value storage.
+  version: 1.0.0
+paths:
+  /storage/{key}:
+    get:
+      summary: Retrieve a value by key
+      tags:
+        - Storage
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successfully retrieved value
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  value:
+                    type: string
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete a key-value pair
+      tags:
+        - Storage
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: Successfully deleted key
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "ok"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /storage:
+    put:
+      summary: Create or update a key-value pair
+      tags:
+        - Storage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                value:
+                  type: string
+      responses:
+        200:
+          description: Successfully set value
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "ok"
+        400:
+          $ref: '#/components/responses/BadRequest'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        err:
+          type: string
+  responses:
+    BadRequest:
+      description: Bad request (malformed input or missing required fields)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            err: "malformed request"
+    NotFound:
+      description: Key not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            err: "not found"
+    InternalServerError:
+      description: Server-side error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            err: "internal server error"
