@@ -6,6 +6,8 @@ github.com/KennyMacCormik/common/val v0.1.1 h1:5jCJitZ8BpfMZILue7bLIVnUi0/J9misk
 github.com/KennyMacCormik/common/val v0.1.1/go.mod h1:+qMwy1jgEDS0Y5dxYR3jG6rzfzAgWN+f1IEzSx9A7l4=
 github.com/KennyMacCormik/otel/otel-common v0.1.0 h1:xOFF67wQr20APAS7oTFezde0fN+9qbiZHhonIKV40qQ=
 github.com/KennyMacCormik/otel/otel-common v0.1.0/go.mod h1:271A+jcO23WNXRzjLWn1Y3l1VRZiK8mqYiCk66nnlgQ=
+github.com/KennyMacCormik/otel/otel-common v0.2.0 h1:jhF37uOSwIEPL35Q1Tc0NwkhvND1TwkuU4b1MVvs/eE=
+github.com/KennyMacCormik/otel/otel-common v0.2.0/go.mod h1:cnelmQjguwBYEAkmlk3VIxN4sYMzkzZOmOR4elSYIic=
 github.com/bytedance/sonic v1.12.8 h1:4xYRVRlXIgvSZ4e8iVTlMF5szgpXd4AfvuWgA8I8lgs=
 github.com/bytedance/sonic v1.12.8/go.mod h1:uVvFidNmlt9+wa31S1urfwwthTWteBgG0hWuoKAXTx8=
 github.com/bytedance/sonic/loader v0.1.1/go.mod h1:ncP89zfokxS5LZrJxl5z0UJcsk4M4yY2JpfqGeCtNLU=

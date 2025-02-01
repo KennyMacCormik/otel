@@ -8,7 +8,7 @@ import (
 )
 
 type ginConf struct {
-	GinMode string `mapstructure:"gin_mode" validate:"oneof=debug,release,test"`
+	GinMode string `mapstructure:"gin_mode" validate:"oneof=debug release test"`
 }
 
 func NewGinConf() conf.GinConfig {
@@ -18,6 +18,11 @@ func NewGinConf() conf.GinConfig {
 	err := viper.BindEnv("gin_mode")
 	if err != nil {
 		log.Error("Failed to bind gin_mode")
+	}
+
+	err = viper.Unmarshal(c)
+	if err != nil {
+		log.Error("Failed to unmarshal ginConf")
 	}
 
 	err = val.ValidateStruct(c)
