@@ -114,8 +114,8 @@ curl --location 'http://localhost:8080/storage/testKey' \
 - Change cfg package according to recommendations (https://github.com/katyafirstova/auth_service/tree/week_2) (api, ~~backend~~)
 - Change file naming to snake_case (api, ~~backend~~)
 - Change int to int64 (api, ~~backend~~)
-- Move storage.go to separate folder
-- Add empty strings everywhere
+- Move storage.go to separate folder (api, ~~backend~~)
+- Add empty strings everywhere (api, ~~backend~~)
 - Make logger global (refactor log package)
 - Review http response codes (201, 204)
 - Add structs and interfaces for handlers

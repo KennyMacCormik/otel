@@ -1,4 +1,4 @@
-package handlers
+package storage
 
 import (
 	"errors"
@@ -6,9 +6,6 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
@@ -41,30 +38,31 @@ func NewStorageHandlers(st cache.CacheInterface) func(*gin.Engine) {
 	}
 }
 
-func startSpan(c *gin.Context, traceName, spanName string) trace.Span {
-	tracer := otel.Tracer(traceName)
-	ctx, span := tracer.Start(c.Request.Context(), spanName)
-	c.Request = c.Request.WithContext(ctx)
-	return span
-}
+// func startSpan(c *gin.Context, traceName, spanName string) trace.Span {
+// 	tracer := otel.Tracer(traceName)
+// 	ctx, span := tracer.Start(c.Request.Context(), spanName)
+// 	c.Request = c.Request.WithContext(ctx)
+// 	return span
+// }
 
 func getKey(c *gin.Context) (string, error) {
 	key := c.Param("key")
 	if key == "" {
 		return "", fmt.Errorf("no key provided")
 	}
+
 	return key, nil
 }
 
 func get(st cache.CacheInterface) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		const (
-			traceName = "backend/http/get"
-			spanName  = "http/get"
-		)
+		// const (
+		// 	traceName = "backend/http/get"
+		// 	spanName  = "http/get"
+		// )
 		// tracing
-		span := startSpan(c, traceName, spanName)
-		defer span.End()
+		// span := startSpan(c, traceName, spanName)
+		// defer span.End()
 		// prep
 		// requestId, err := middleware.GetRequestIDFromCtx(c)
 		// newLg := middleware.LogReq(c, requestId, lg, false)
@@ -78,7 +76,7 @@ func get(st cache.CacheInterface) func(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, errStatusBadRequest)
 			return
 		}
-		span.SetAttributes(attribute.String("key", key))
+		// span.SetAttributes(attribute.String("key", key))
 		// newLg.Debug("decoded key", "key", key)
 		// invoke request
 		val, err := st.Get(c.Request.Context(), key)
@@ -92,7 +90,7 @@ func get(st cache.CacheInterface) func(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
 			return
 		}
-		// send response
+
 		result := body{Key: key, Val: fmt.Sprintf("%v", val)}
 		c.JSON(http.StatusOK, result)
 	}
@@ -100,13 +98,13 @@ func get(st cache.CacheInterface) func(c *gin.Context) {
 
 func set(st cache.CacheInterface) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		const (
-			traceName = "backend/http/set"
-			spanName  = "http/set"
-		)
+		// const (
+		// 	traceName = "backend/http/set"
+		// 	spanName  = "http/set"
+		// )
 		// tracing
-		span := startSpan(c, traceName, spanName)
-		defer span.End()
+		// span := startSpan(c, traceName, spanName)
+		// defer span.End()
 		// prep
 		// id, err := middleware.GetRequestIDFromCtx(c)
 		// newLg := middleware.LogReq(c, id, lg, false)
@@ -114,14 +112,13 @@ func set(st cache.CacheInterface) func(c *gin.Context) {
 		//	logErrorAndTraceEvent(err, "cannot get request id from context", span, newLg)
 		// }
 		b := &body{}
-		// get body
 		err := c.ShouldBindJSON(&b)
 		if err != nil {
 			// logErrorAndTraceEvent(err, "cannot get body from request", span, newLg)
 			c.JSON(http.StatusBadRequest, errStatusBadRequest)
 			return
 		}
-		span.SetAttributes(attribute.String("key", b.Key), attribute.String("value", b.Val))
+		// span.SetAttributes(attribute.String("key", b.Key), attribute.String("value", b.Val))
 		// newLg.Debug("request body", "key", b.Key, "value", b.Val)
 		// invoke request
 		err = st.Set(c.Request.Context(), b.Key, b.Val)
@@ -130,20 +127,20 @@ func set(st cache.CacheInterface) func(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
 			return
 		}
-		// send response
+
 		c.JSON(http.StatusOK, "ok")
 	}
 }
 
 func del(st cache.CacheInterface) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		const (
-			traceName = "backend/http/set"
-			spanName  = "http/set"
-		)
+		// const (
+		// 	traceName = "backend/http/set"
+		// 	spanName  = "http/set"
+		// )
 		// tracing
-		span := startSpan(c, traceName, spanName)
-		defer span.End()
+		// span := startSpan(c, traceName, spanName)
+		// defer span.End()
 		// prep
 		// requestId, err := middleware.GetRequestIDFromCtx(c)
 		// newLg := middleware.LogReq(c, requestId, lg, false)
@@ -157,7 +154,7 @@ func del(st cache.CacheInterface) func(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, errStatusBadRequest)
 			return
 		}
-		span.SetAttributes(attribute.String("key", key))
+		// span.SetAttributes(attribute.String("key", key))
 		// newLg.Debug("decoded key", "key", key)
 		// invoke request
 		err = st.Delete(c.Request.Context(), key)
@@ -166,7 +163,7 @@ func del(st cache.CacheInterface) func(c *gin.Context) {
 			c.JSON(http.StatusInternalServerError, errStatusInternalServer)
 			return
 		}
-		// send response
+
 		c.JSON(http.StatusOK, "ok")
 	}
 }

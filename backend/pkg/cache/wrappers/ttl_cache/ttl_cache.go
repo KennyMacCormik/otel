@@ -48,18 +48,23 @@ func WithOverrideDefaults(ttl, tickerTTL, getKeysTTL,
 		if ttl <= 0 {
 			ttl = defaultTTL
 		}
+
 		if tickerTTL <= 0 {
 			tickerTTL = defaultTickerTTL
 		}
+
 		if getKeysTTL <= 0 {
 			getKeysTTL = defaultGetKeysTTL
 		}
+
 		if deleteExpiredKeysTTL <= 0 {
 			deleteExpiredKeysTTL = defaultDeleteExpiredKeysTTL
 		}
+
 		if skewPercent <= 0 {
 			skewPercent = defaultSkewPercent
 		}
+
 		t.ttl = ttl
 		t.tickerTTL = tickerTTL
 		t.getKeysTTL = getKeysTTL
@@ -70,6 +75,7 @@ func WithOverrideDefaults(ttl, tickerTTL, getKeysTTL,
 
 func NewTtlCache(impl cache.CacheInterface, opts ...InitOptions) (cache.CacheInterface, error) {
 	const wrap = "NewTtlCache"
+
 	err := cache.WithValueValidation(impl, wrap)()
 	if err != nil {
 		return nil, err
@@ -115,6 +121,7 @@ func (t *ttlCache) Get(ctx context.Context, key string) (any, error) {
 		err = cache.NewErrTypeCastFailed(key, val, wrap)
 		return nil, err
 	}
+
 	if ttlExpired(castedValue.ExpiresAt) {
 		return nil, NewErrTimeout(key, wrap, castedValue.ExpiresAt)
 	}
@@ -205,25 +212,27 @@ func (t *ttlCache) expireCache() {
 
 func (t *ttlCache) deleteExpiredKey(key string) {
 	const wrap = "ttlCache/deleteExpiredKey"
+
 	ctx, cancel := context.WithTimeout(context.Background(), t.deleteExpiredKeysTTL)
 	defer cancel()
+
 	// presumably always succeed
 	val, err := t.impl.Get(ctx, key)
 	if err != nil {
 		log.Error(fmt.Sprintf("%s: failed to get key: %s", wrap, key), "key", key, "err", err)
 		return
 	}
-	// might fail
+
 	castedValue, ok := val.(*cacheEntry)
 	if !ok {
 		log.Error(fmt.Sprintf("%s: failed to type cast: key [%s]", wrap, key), "key", key, "err", err)
 		return
 	}
-	// return if entry not expired
+
 	if !ttlExpired(castedValue.ExpiresAt) {
 		return
 	}
-	// actually delete entry
+
 	err = t.impl.Delete(ctx, key)
 	if err != nil {
 		log.Error(fmt.Sprintf("%s: failed to delete key", wrap), "key", key, "err", err)
@@ -233,6 +242,7 @@ func (t *ttlCache) deleteExpiredKey(key string) {
 func (t *ttlCache) getImplKeys() ([]string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), t.getKeysTTL)
 	defer cancel()
+
 	return t.impl.GetKeys(ctx)
 }
 
@@ -285,6 +295,7 @@ func (e *ErrTimeout) Error() string {
 // Is function only checks for an ErrTimeout type and don't compare for an underlying key or ttl
 func (e *ErrTimeout) Is(target error) bool {
 	_, ok := target.(*ErrTimeout)
+
 	return ok
 }
 

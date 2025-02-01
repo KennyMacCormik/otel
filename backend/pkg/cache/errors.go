@@ -45,6 +45,7 @@ func (e *ErrTypeCastFailed) error() {
 		e.underlyingErr = fmt.Errorf("%w: %w", ErrNil, ErrTypeCast)
 		return
 	}
+
 	if val := reflect.ValueOf(e.key); val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface {
 		if val.IsNil() {
 			e.errStr = fmt.Errorf("%s: key err: %w: %w", e.callerInfo, ErrNilPointerOrNilInterface, ErrTypeCast).Error()
@@ -58,6 +59,7 @@ func (e *ErrTypeCastFailed) error() {
 		e.underlyingErr = fmt.Errorf("%w: %w", ErrNil, ErrTypeCast)
 		return
 	}
+
 	if val := reflect.ValueOf(e.value); val.Kind() == reflect.Ptr || val.Kind() == reflect.Interface {
 		if val.IsNil() {
 			e.errStr = fmt.Errorf("%s: key %v: value err: %w: %w", e.callerInfo, e.key, ErrNilPointerOrNilInterface, ErrTypeCast).Error()
@@ -105,6 +107,7 @@ func (e *ErrInvalidValue) Is(target error) bool {
 	if !ok {
 		return false
 	}
+
 	return e.signalError.Error() == err.signalError.Error()
 }
 
@@ -152,6 +155,7 @@ func NewErrNilOrErrCtx(callerInfo string, ctx context.Context) *ErrCtx {
 	if ctx == nil {
 		return &ErrCtx{callerInfo: callerInfo, ctxErr: ErrNilCtx}
 	}
+
 	return &ErrCtx{callerInfo: callerInfo, ctxErr: ctx.Err()}
 }
 
@@ -161,6 +165,7 @@ func (e *ErrCtx) Is(target error) bool {
 	if !ok {
 		return false
 	}
+
 	return e.ctxErr.Error() == err.ctxErr.Error()
 }
 

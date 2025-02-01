@@ -33,12 +33,14 @@ func WithOverrideDefaults(shardNumber int64) InitOptions {
 		if shardNumber < 1 {
 			shardNumber = defaultShardNumber
 		}
+
 		s.shardNumber = shardNumber
 	}
 }
 
 func NewShardedCache(initFn func() cache.CacheInterface, opts ...InitOptions) (cache.CacheInterface, error) {
 	const wrap = "NewShardedCache"
+
 	err := cache.WithValueValidation(initFn, wrap)()
 	if err != nil {
 		return nil, err
@@ -81,6 +83,7 @@ func (s *shardedCache) Get(ctx context.Context, key string) (any, error) {
 	defer s.mtx.RUnlock()
 
 	const wrap = "ttlCache/Get"
+
 	if err := cache.ValidateInput(
 		cache.WithClosedValidation(&s.closed, wrap),
 		cache.WithCtxValidation(ctx, wrap),
@@ -97,6 +100,7 @@ func (s *shardedCache) Set(ctx context.Context, key string, value any) error {
 	defer s.mtx.RUnlock()
 
 	const wrap = "ttlCache/Set"
+
 	if err := cache.ValidateInput(
 		cache.WithClosedValidation(&s.closed, wrap),
 		cache.WithCtxValidation(ctx, wrap),
@@ -114,6 +118,7 @@ func (s *shardedCache) Delete(ctx context.Context, key string) error {
 	defer s.mtx.RUnlock()
 
 	const wrap = "ttlCache/Delete"
+
 	if err := cache.ValidateInput(
 		cache.WithClosedValidation(&s.closed, wrap),
 		cache.WithCtxValidation(ctx, wrap),
@@ -127,6 +132,7 @@ func (s *shardedCache) Delete(ctx context.Context, key string) error {
 
 func (s *shardedCache) Close(ctx context.Context) error {
 	var err error
+
 	s.closedOnce.Do(func() {
 		s.mtx.Lock()
 		defer s.mtx.Unlock()
@@ -145,6 +151,7 @@ func (s *shardedCache) GetLength() (int64, error) {
 	defer s.mtx.RUnlock()
 
 	const wrap = "ttlCache/GetKeys"
+
 	if err := cache.ValidateInput(
 		cache.WithClosedValidation(&s.closed, wrap),
 	); err != nil {
@@ -156,7 +163,9 @@ func (s *shardedCache) GetLength() (int64, error) {
 
 func (s *shardedCache) getShardedCacheLen() (int64, error) {
 	const wrap = "ttlCache/getShardedCacheLen"
+
 	var i int64
+
 	for shardNum := range s.shards {
 		num, err := s.shards[shardNum].GetLength()
 		if err != nil {
@@ -164,6 +173,7 @@ func (s *shardedCache) getShardedCacheLen() (int64, error) {
 		}
 		i += num
 	}
+
 	return i, nil
 }
 
@@ -172,6 +182,7 @@ func (s *shardedCache) GetKeys(ctx context.Context) ([]string, error) {
 	defer s.mtx.RUnlock()
 
 	const wrap = "ttlCache/GetKeys"
+
 	if err := cache.ValidateInput(
 		cache.WithClosedValidation(&s.closed, wrap),
 		cache.WithCtxValidation(ctx, wrap),
@@ -196,6 +207,7 @@ func (s *shardedCache) GetKeys(ctx context.Context) ([]string, error) {
 	if len(errCh) > 0 {
 		return nil, <-errCh
 	}
+
 	for keys := range resultCh {
 		result = append(result, keys...)
 	}
@@ -208,13 +220,16 @@ func (s *shardedCache) loopShards(ctx context.Context, resultCh chan []string, e
 
 	for i := range s.shards {
 		wg.Add(1)
+
 		go func(shardIdx int) {
 			defer wg.Done()
+
 			keys, err := s.getKeys(ctx, int64(shardIdx))
 			if err != nil {
 				errCh <- err
 				return
 			}
+
 			resultCh <- keys
 		}(i)
 	}
@@ -237,10 +252,13 @@ func getShardNumber(key string, shardNumber int64) int64 {
 	if key == "" {
 		return fallbackShard
 	}
+
 	hasher := fnv.New64a()
+
 	_, err := hasher.Write(conv.StrToBytes(key))
 	if err != nil {
 		return fallbackShard
 	}
+
 	return int64(hasher.Sum64() % uint64(shardNumber))
 }

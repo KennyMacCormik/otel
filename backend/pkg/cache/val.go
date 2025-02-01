@@ -71,6 +71,7 @@ func IsNotNil(value any, callerInfo string) error {
 	// Check if it is a nil pointer, nil interface, or empty function
 	val := reflect.ValueOf(value)
 	kind := val.Kind()
+
 	// TODO fix warning
 	switch kind {
 	case reflect.Ptr, reflect.Interface:
@@ -82,5 +83,6 @@ func IsNotNil(value any, callerInfo string) error {
 			return NewErrInvalidValue(value, ErrNilFunc, callerInfo)
 		}
 	}
+
 	return nil
 }

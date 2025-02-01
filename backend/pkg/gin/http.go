@@ -32,5 +32,6 @@ func (s *Server) Start() error {
 func (s *Server) Close(t time.Duration) error {
 	ctx, cancel := context.WithTimeout(context.Background(), t)
 	defer cancel()
+
 	return s.svr.Shutdown(ctx)
 }
