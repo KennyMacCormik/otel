@@ -8,7 +8,6 @@ import (
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"log/slog"
 	"net/http"
 )
 
@@ -27,10 +26,10 @@ type errorMsg struct {
 	Err string `json:"err"`
 }
 
-func logErrorAndTraceEvent(err error, msg string, span trace.Span, lg *slog.Logger) {
-	span.AddEvent(msg, trace.WithAttributes(attribute.String("error", err.Error())))
-	lg.Error(msg, "error", err)
-}
+//func logErrorAndTraceEvent(err error, msg string, span trace.Span, lg *slog.Logger) {
+//	span.AddEvent(msg, trace.WithAttributes(attribute.String("error", err.Error())))
+//	lg.Error(msg, "error", err)
+//}
 
 func NewStorageHandlers(st cache.Interface) func(*gin.Engine) {
 	return func(router *gin.Engine) {
