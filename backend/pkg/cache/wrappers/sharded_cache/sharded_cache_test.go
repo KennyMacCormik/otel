@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	mockCache "github.com/KennyMacCormik/otel/backend/pkg/cache/mocks"
+	cache2 "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
 
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
@@ -78,7 +79,7 @@ func TestShardedCache_New(t *testing.T) {
 		c, err := NewShardedCache(nil)
 		require.Error(t, err, "should return err for nil func")
 		assert.Empty(t, c, "cache should not be initialized")
-		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrNilFunc, ""), "should return cache.ErrInvalidValue")
+		assert.ErrorIs(t, err, cache2.NewErrInvalidValue("", cache2.ErrNilFunc, ""), "should return cache.ErrInvalidValue")
 	})
 }
 

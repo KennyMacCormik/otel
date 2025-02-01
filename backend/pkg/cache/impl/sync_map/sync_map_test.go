@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
+	cache2 "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
 )
 
 const testKeyCapacity int64 = 128
@@ -108,7 +109,7 @@ func TestSyncMap_Set(t *testing.T) {
 
 		_, err = sm.Set(context.Background(), "key1", "value1")
 		require.Error(t, err, "Shall return error for closed cache")
-		assert.ErrorIs(t, err, cache.ErrCacheClosed, "Shall return cache.ErrCacheClosed")
+		assert.ErrorIs(t, err, cache2.ErrCacheClosed, "Shall return cache.ErrCacheClosed")
 
 		length := 0
 		sm.m.Range(func(_, _ any) bool {
@@ -124,7 +125,7 @@ func TestSyncMap_Set(t *testing.T) {
 
 			_, err := sm.Set(nil, "key1", "value1")
 			require.Error(t, err, "Shall return error for nil ctx")
-			assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", nil), "Shall return cache.ErrCtx")
+			assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", nil), "Shall return cache.ErrCtx")
 
 			length := 0
 			sm.m.Range(func(_, _ any) bool {
@@ -144,7 +145,7 @@ func TestSyncMap_Set(t *testing.T) {
 
 			_, err := sm.Set(ctx, "key1", "value1")
 			require.Error(t, err, "Shall return error for closed ctx")
-			assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", ctx), "Shall return cache.ErrCtx")
+			assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", ctx), "Shall return cache.ErrCtx")
 
 			length := 0
 			sm.m.Range(func(_, _ any) bool {
@@ -160,7 +161,7 @@ func TestSyncMap_Set(t *testing.T) {
 
 		_, err := sm.Set(context.Background(), "", "value1")
 		require.Error(t, err, "Shall return error empty key")
-		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrEmptyString, ""), "Shall return cache.ErrInvalidValue")
+		assert.ErrorIs(t, err, cache2.NewErrInvalidValue("", cache2.ErrEmptyString, ""), "Shall return cache.ErrInvalidValue")
 
 		length := 0
 		sm.m.Range(func(_, _ any) bool {
@@ -175,7 +176,7 @@ func TestSyncMap_Set(t *testing.T) {
 
 		_, err := sm.Set(context.Background(), "key1", nil)
 		require.Error(t, err, "Shall return error empty key")
-		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrNil, ""), "Shall return cache.ErrInvalidValue")
+		assert.ErrorIs(t, err, cache2.NewErrInvalidValue("", cache2.ErrNil, ""), "Shall return cache.ErrInvalidValue")
 
 		length := 0
 		sm.m.Range(func(_, _ any) bool {
@@ -232,7 +233,7 @@ func TestSyncMap_Delete(t *testing.T) {
 
 		err = sm.Delete(context.Background(), "key1")
 		require.Error(t, err, "expect an error for closed cache")
-		assert.ErrorIs(t, err, cache.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
+		assert.ErrorIs(t, err, cache2.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
 	})
 
 	t.Run("incorrect ctx", func(t *testing.T) {
@@ -244,7 +245,7 @@ func TestSyncMap_Delete(t *testing.T) {
 
 			err = sm.Delete(nil, "key1")
 			require.Error(t, err, "expect an error for closed cache")
-			assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
+			assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
 		})
 
 		t.Run("expired ctx", func(t *testing.T) {
@@ -260,7 +261,7 @@ func TestSyncMap_Delete(t *testing.T) {
 
 			err = sm.Delete(ctx, "key1")
 			require.Error(t, err, "expect an error for closed cache")
-			assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", ctx), "expect error to be ErrCtx")
+			assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", ctx), "expect error to be ErrCtx")
 		})
 	})
 
@@ -272,7 +273,7 @@ func TestSyncMap_Delete(t *testing.T) {
 
 		err = sm.Delete(context.Background(), "")
 		require.Error(t, err, "expect an error for closed cache")
-		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrEmptyString, ""), "expect error to be cache.ErrInvalidValue")
+		assert.ErrorIs(t, err, cache2.NewErrInvalidValue("", cache2.ErrEmptyString, ""), "expect error to be cache.ErrInvalidValue")
 	})
 }
 
@@ -304,7 +305,7 @@ func TestSyncMap_Get(t *testing.T) {
 
 			val, err := sm.Get(context.Background(), "key2")
 			require.Error(t, err, "Shall return no error for nonexistent key")
-			assert.ErrorIs(t, err, cache.ErrNotFound, "expect error to be cache.ErrNotFound")
+			assert.ErrorIs(t, err, cache2.ErrNotFound, "expect error to be cache.ErrNotFound")
 			assert.Empty(t, val, "Get value shall be nil")
 
 			length := 0
@@ -320,7 +321,7 @@ func TestSyncMap_Get(t *testing.T) {
 
 			val, err := sm.Get(context.Background(), "key2")
 			require.Error(t, err, "Shall return no error for nonexistent key")
-			assert.ErrorIs(t, err, cache.ErrNotFound, "expect error to be cache.ErrNotFound")
+			assert.ErrorIs(t, err, cache2.ErrNotFound, "expect error to be cache.ErrNotFound")
 			assert.Empty(t, val, "Get value shall be nil")
 
 			length := 0
@@ -339,7 +340,7 @@ func TestSyncMap_Get(t *testing.T) {
 
 		val, err := sm.Get(context.Background(), "key2")
 		require.Error(t, err, "Shall return no error for nonexistent key")
-		assert.ErrorIs(t, err, cache.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
+		assert.ErrorIs(t, err, cache2.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
 		assert.Empty(t, val, "Get value shall be nil")
 	})
 
@@ -350,7 +351,7 @@ func TestSyncMap_Get(t *testing.T) {
 			val, err := sm.Get(nil, "key2")
 			require.Error(t, err, "expect an error for nil ctx")
 			assert.Empty(t, val, "Get value shall be nil")
-			assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
+			assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
 		})
 
 		t.Run("expired ctx", func(t *testing.T) {
@@ -364,7 +365,7 @@ func TestSyncMap_Get(t *testing.T) {
 			val, err := sm.Get(ctx, "key2")
 			require.Error(t, err, "expect an error for closed ctx")
 			assert.Empty(t, val, "Get value shall be nil")
-			assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", ctx), "expect error to be ErrCtx")
+			assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", ctx), "expect error to be ErrCtx")
 		})
 	})
 
@@ -377,7 +378,7 @@ func TestSyncMap_Get(t *testing.T) {
 		val, err := sm.Get(context.Background(), "")
 		require.Error(t, err, "expect an error for closed cache")
 		assert.Empty(t, val, "Get value shall be nil")
-		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrEmptyString, ""), "expect error to be cache.ErrInvalidValue")
+		assert.ErrorIs(t, err, cache2.NewErrInvalidValue("", cache2.ErrEmptyString, ""), "expect error to be cache.ErrInvalidValue")
 	})
 }
 
@@ -460,7 +461,7 @@ func TestSyncMap_GetLength(t *testing.T) {
 
 		length, err := sm.GetLength()
 		require.Error(t, err, "GetLength should return an error for a closed map")
-		assert.ErrorIs(t, err, cache.ErrCacheClosed, "GetLength should return an cache.ErrCacheClosed error")
+		assert.ErrorIs(t, err, cache2.ErrCacheClosed, "GetLength should return an cache.ErrCacheClosed error")
 		assert.Equal(t, int64(0), length, "GetLength should return 0 for a closed map")
 	})
 }
@@ -492,7 +493,7 @@ func TestSyncMap_GetKeys(t *testing.T) {
 		keys, err := sm.GetKeys(ctx)
 		require.Error(t, err, "GetKeys should return an error if the context is done")
 		assert.Nil(t, keys, "Keys should be nil if context times out")
-		assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", ctx), "GetKeys should return an ErrNilOrErrCtx")
+		assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", ctx), "GetKeys should return an ErrNilOrErrCtx")
 	})
 
 	t.Run("empty map", func(t *testing.T) {
@@ -511,7 +512,7 @@ func TestSyncMap_GetKeys(t *testing.T) {
 		keys, err := sm.GetKeys(nil)
 		require.Error(t, err, "GetKeys should NOT handle nil context")
 		assert.Nil(t, keys, "Keys should be nil if error returned")
-		assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", nil), "GetKeys should return an ErrNilOrErrCtx")
+		assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", nil), "GetKeys should return an ErrNilOrErrCtx")
 	})
 
 	t.Run("key type casting failure", func(t *testing.T) {
@@ -522,7 +523,7 @@ func TestSyncMap_GetKeys(t *testing.T) {
 		keys, err := sm.GetKeys(ctx)
 		assert.Error(t, err, "GetKeys should return an error if a key type is invalid")
 		assert.Nil(t, keys, "Keys should be nil if there is a type casting failure")
-		assert.ErrorIs(t, err, &cache.ErrTypeCastFailed{}, "Error should be of type ErrTypeCastFailed")
+		assert.ErrorIs(t, err, &cache2.ErrTypeCastFailed{}, "Error should be of type ErrTypeCastFailed")
 	})
 
 	t.Run("cache closed", func(t *testing.T) {
@@ -536,7 +537,7 @@ func TestSyncMap_GetKeys(t *testing.T) {
 		keys, err := sm.GetKeys(ctx)
 		assert.Error(t, err, "GetKeys should return an error if a key type is invalid")
 		assert.Nil(t, keys, "Keys should be nil if there is a type casting failure")
-		assert.ErrorIs(t, err, cache.ErrCacheClosed, "Error should be of type ErrCacheClosed")
+		assert.ErrorIs(t, err, cache2.ErrCacheClosed, "Error should be of type ErrCacheClosed")
 	})
 }
 

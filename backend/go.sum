@@ -1,3 +1,5 @@
+github.com/KennyMacCormik/HerdMaster v0.7.7 h1:eJayyfGCS1u34H69ygRHZ6ztbeuA8tyzGaFm4uwiOnk=
+github.com/KennyMacCormik/HerdMaster v0.7.7/go.mod h1:T0lfmr1YifUOWuiIOrLEg+73YZKF3jofWezVAN4nngc=
 github.com/KennyMacCormik/common/conv v0.1.0 h1:n/hot5nED6RT7zY8iF2qNm2UWuVMnMvcnafwKFek5pw=
 github.com/KennyMacCormik/common/conv v0.1.0/go.mod h1:bnW1kxTDCWcM9iqBvFyy4klajnJXgCo18P8ha3LZtgA=
 github.com/KennyMacCormik/common/gin_factory v0.1.4 h1:hb3eAzbbkzZTzrY4hSXXQ7WezzAeP/74Gl2DY6JEIDE=

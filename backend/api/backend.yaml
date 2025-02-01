@@ -46,11 +46,6 @@ paths:
       responses:
         200:
           description: Successfully deleted key
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "ok"
         400:
           $ref: '#/components/responses/BadRequest'
         500:
@@ -74,18 +69,8 @@ paths:
       responses:
         200:
           description: Successfully updated existing value
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "ok"
         201:
           description: Successfully created a new value
-          content:
-            application/json:
-              schema:
-                type: string
-                example: "ok"
         204:
           description: Successful request, nothing changed
         400:
@@ -94,34 +79,10 @@ paths:
           $ref: '#/components/responses/InternalServerError'
 
 components:
-  schemas:
-    ErrorResponse:
-      type: object
-      properties:
-        err:
-          type: string
   responses:
     BadRequest:
       description: Bad request (malformed input or missing required fields)
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            err: "malformed request"
     NotFound:
       description: Key not found
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            err: "not found"
     InternalServerError:
       description: Server-side error
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ErrorResponse'
-          example:
-            err: "internal server error"

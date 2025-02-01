@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
+	cache2 "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
 
 	mockCache "github.com/KennyMacCormik/otel/backend/pkg/cache/mocks"
 )
@@ -93,7 +94,7 @@ func TestTtlCache_New(t *testing.T) {
 	t.Run("with nil cache", func(t *testing.T) {
 		ttl, err := NewTtlCache(nil)
 		require.Error(t, err, "expect an error with with nil cache")
-		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrNil, ""), "expect err be ErrInvalidValue")
+		assert.ErrorIs(t, err, cache2.NewErrInvalidValue("", cache2.ErrNil, ""), "expect err be ErrInvalidValue")
 		assert.Nil(t, ttl, "result should be nil with nil cache")
 	})
 }
@@ -128,7 +129,7 @@ func TestTtlCache_GetLength(t *testing.T) {
 		i, err := ttl.GetLength()
 		require.Error(t, err, "expect an error")
 		assert.Equal(t, i, int64(0), "expect returned value equal 0 in case of error")
-		assert.ErrorIs(t, err, cache.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
+		assert.ErrorIs(t, err, cache2.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
 	})
 }
 
@@ -191,7 +192,7 @@ func TestTtlCache_GetKeys(t *testing.T) {
 			val, err := ttl.GetKeys(nil)
 			require.Error(t, err, "expect an error")
 			assert.Nil(t, val, "expect nil result with error")
-			assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
+			assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
 		})
 
 		t.Run("cache closed", func(t *testing.T) {
@@ -204,7 +205,7 @@ func TestTtlCache_GetKeys(t *testing.T) {
 			val, err := ttl.GetKeys(context.Background())
 			require.Error(t, err, "expect an error")
 			assert.Nil(t, val, "expect nil result with error")
-			assert.ErrorIs(t, err, cache.ErrCacheClosed, "expect error to be assert.AnError")
+			assert.ErrorIs(t, err, cache2.ErrCacheClosed, "expect error to be assert.AnError")
 		})
 	})
 
@@ -247,7 +248,7 @@ func TestTtlCache_Get(t *testing.T) {
 		val, err := ttl.Get(context.Background(), "key1")
 		require.Error(t, err, "expect error")
 		assert.Nil(t, val, "expect nil result with error")
-		assert.ErrorIs(t, err, cache.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
+		assert.ErrorIs(t, err, cache2.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
 	})
 
 	t.Run("nil ctx", func(t *testing.T) {
@@ -255,7 +256,7 @@ func TestTtlCache_Get(t *testing.T) {
 		val, err := ttl.Get(nil, "key1")
 		require.Error(t, err, "expect error")
 		assert.Nil(t, val, "expect nil result with error")
-		assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
+		assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
 	})
 
 	t.Run("empty key", func(t *testing.T) {
@@ -263,7 +264,7 @@ func TestTtlCache_Get(t *testing.T) {
 		val, err := ttl.Get(context.Background(), "")
 		require.Error(t, err, "expect error")
 		assert.Nil(t, val, "expect nil result with error")
-		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrEmptyString, ""), "expect error to be cache.ErrInvalidValue")
+		assert.ErrorIs(t, err, cache2.NewErrInvalidValue("", cache2.ErrEmptyString, ""), "expect error to be cache.ErrInvalidValue")
 	})
 
 	t.Run("typecast failure", func(t *testing.T) {
@@ -272,7 +273,7 @@ func TestTtlCache_Get(t *testing.T) {
 		val, err := ttl.Get(context.Background(), "key1")
 		require.Error(t, err, "expect error")
 		assert.Nil(t, val, "expect nil result with error")
-		assert.ErrorIs(t, err, cache.NewErrTypeCastFailed("", "", ""), "expect error to be cache.ErrTypeCastFailed")
+		assert.ErrorIs(t, err, cache2.NewErrTypeCastFailed("", "", ""), "expect error to be cache.ErrTypeCastFailed")
 	})
 }
 
@@ -305,7 +306,7 @@ func TestTtlCache_Set(t *testing.T) {
 
 		code, err := ttl.Set(context.Background(), "key1", "value1")
 		require.Error(t, err, "expect an error")
-		assert.ErrorIs(t, err, cache.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
+		assert.ErrorIs(t, err, cache2.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
 		assert.Equal(t, 0, code, "expect 0 code for an error")
 	})
 
@@ -314,7 +315,7 @@ func TestTtlCache_Set(t *testing.T) {
 
 		code, err := ttl.Set(nil, "key1", "value1")
 		require.Error(t, err, "expect an error")
-		assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
+		assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
 		assert.Equal(t, 0, code, "expect 0 code for an error")
 	})
 
@@ -323,7 +324,7 @@ func TestTtlCache_Set(t *testing.T) {
 
 		code, err := ttl.Set(context.Background(), "", "value1")
 		require.Error(t, err, "expect an error")
-		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrEmptyString, ""), "expect error to be cache.ErrInvalidValue")
+		assert.ErrorIs(t, err, cache2.NewErrInvalidValue("", cache2.ErrEmptyString, ""), "expect error to be cache.ErrInvalidValue")
 		assert.Equal(t, 0, code, "expect 0 code for an error")
 	})
 
@@ -332,7 +333,7 @@ func TestTtlCache_Set(t *testing.T) {
 
 		code, err := ttl.Set(context.Background(), "key1", nil)
 		require.Error(t, err, "expect an error")
-		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrNil, ""), "expect error to be cache.ErrInvalidValue")
+		assert.ErrorIs(t, err, cache2.NewErrInvalidValue("", cache2.ErrNil, ""), "expect error to be cache.ErrInvalidValue")
 		assert.Equal(t, 0, code, "expect 0 code for an error")
 	})
 }
@@ -360,21 +361,21 @@ func TestTtlCache_Delete(t *testing.T) {
 		require.NoError(t, err, "expect no error with cache closed")
 		err = ttl.Delete(context.Background(), "key1")
 		require.Error(t, err, "expect an error")
-		assert.ErrorIs(t, err, cache.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
+		assert.ErrorIs(t, err, cache2.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
 	})
 
 	t.Run("nil ctx", func(t *testing.T) {
 		_, ttl := getTtlCacheMock(t)
 		err := ttl.Delete(nil, "key1")
 		require.Error(t, err, "expect an error")
-		assert.ErrorIs(t, err, cache.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
+		assert.ErrorIs(t, err, cache2.NewErrNilOrErrCtx("", nil), "expect error to be ErrCtx")
 	})
 
 	t.Run("empty key", func(t *testing.T) {
 		_, ttl := getTtlCacheMock(t)
 		err := ttl.Delete(context.Background(), "")
 		require.Error(t, err, "expect an error")
-		assert.ErrorIs(t, err, cache.NewErrInvalidValue("", cache.ErrEmptyString, ""), "expect error to be cache.ErrInvalidValue")
+		assert.ErrorIs(t, err, cache2.NewErrInvalidValue("", cache2.ErrEmptyString, ""), "expect error to be cache.ErrInvalidValue")
 	})
 }
 

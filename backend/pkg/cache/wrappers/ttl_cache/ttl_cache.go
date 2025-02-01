@@ -2,7 +2,6 @@ package ttl_cache
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"math/rand"
 	"sync"
@@ -12,6 +11,9 @@ import (
 	"github.com/KennyMacCormik/common/log"
 
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
+	cacheErrors "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
+	ttlCacheErrors "github.com/KennyMacCormik/otel/backend/pkg/models/errors/ttl_cache"
+	ttlCacheModels "github.com/KennyMacCormik/otel/backend/pkg/models/ttl_cache"
 )
 
 const (
@@ -22,12 +24,6 @@ const (
 	defaultSkewPercent          int64 = 10
 )
 
-var ErrExpired = errors.New("entry expired")
-
-type cacheEntry struct {
-	Value     any
-	ExpiresAt time.Time
-}
 type ttlCache struct {
 	impl cache.CacheInterface
 
@@ -116,9 +112,9 @@ func (t *ttlCache) Get(ctx context.Context, key string) (any, error) {
 		return nil, err
 	}
 
-	castedValue, ok := val.(*cacheEntry)
+	castedValue, ok := val.(*ttlCacheModels.TtlCacheEntry)
 	if !ok {
-		err = cache.NewErrTypeCastFailed(key, val, wrap)
+		err = cacheErrors.NewErrTypeCastFailed(key, val, wrap)
 		return nil, err
 	}
 
@@ -140,7 +136,7 @@ func (t *ttlCache) Set(ctx context.Context, key string, value any) (int, error) 
 		return 0, err
 	}
 
-	return t.impl.Set(ctx, key, &cacheEntry{Value: value, ExpiresAt: t.getTtl()})
+	return t.impl.Set(ctx, key, &ttlCacheModels.TtlCacheEntry{Value: value, ExpiresAt: t.getTtl()})
 }
 
 func (t *ttlCache) Delete(ctx context.Context, key string) error {
@@ -223,7 +219,7 @@ func (t *ttlCache) deleteExpiredKey(key string) {
 		return
 	}
 
-	castedValue, ok := val.(*cacheEntry)
+	castedValue, ok := val.(*ttlCacheModels.TtlCacheEntry)
 	if !ok {
 		log.Error(fmt.Sprintf("%s: failed to type cast: key [%s]", wrap, key), "key", key, "err", err)
 		return
@@ -273,7 +269,7 @@ type ErrTimeout struct {
 }
 
 func NewErrTimeout(key, callerInfo string, expirationTime time.Time) *ErrTimeout {
-	return &ErrTimeout{key: key, expirationTime: expirationTime, signalErr: ErrExpired, callerInfo: callerInfo}
+	return &ErrTimeout{key: key, expirationTime: expirationTime, signalErr: ttlCacheErrors.ErrExpired, callerInfo: callerInfo}
 }
 
 func (e *ErrTimeout) GetCallerInfo() string {

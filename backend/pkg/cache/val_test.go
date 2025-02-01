@@ -8,19 +8,21 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	cache2 "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
 )
 
 func TestIsNotNil_NilInterface(t *testing.T) {
 	err := IsNotNil(nil, "TestIsNotNil_NilInterface")
 	require.Error(t, err, "IsNotNil should return an error for a nil interface")
-	assert.ErrorIs(t, err, ErrNil, "Error should indicate a nil value")
+	assert.ErrorIs(t, err, cache2.ErrNil, "Error should indicate a nil value")
 }
 
 func TestIsNotNil_NilPointer(t *testing.T) {
 	var ptr *int
 	err := IsNotNil(ptr, "TestIsNotNil_NilPointer")
 	require.Error(t, err, "IsNotNil should return an error for a nil pointer")
-	assert.ErrorIs(t, err, ErrNilPointerOrNilInterface, "Error should indicate a nil pointer")
+	assert.ErrorIs(t, err, cache2.ErrNilPointerOrNilInterface, "Error should indicate a nil pointer")
 }
 
 func TestIsNotNil_ValidPointer(t *testing.T) {
@@ -33,7 +35,7 @@ func TestIsNotNil_NilFunc(t *testing.T) {
 	var fn func()
 	err := IsNotNil(fn, "TestIsNotNil_NilFunc")
 	require.Error(t, err, "IsNotNil should return an error for a nil function")
-	assert.ErrorIs(t, err, ErrNilFunc, "Error should indicate a nil function")
+	assert.ErrorIs(t, err, cache2.ErrNilFunc, "Error should indicate a nil function")
 }
 
 func TestIsNotNil_ValidFunc(t *testing.T) {
@@ -45,7 +47,7 @@ func TestIsNotNil_ValidFunc(t *testing.T) {
 func TestIsKeyValid_EmptyString(t *testing.T) {
 	err := IsKeyValid("", "TestIsKeyValid_EmptyString")
 	require.Error(t, err, "IsKeyValid should return an error for an empty string")
-	assert.ErrorIs(t, err, ErrEmptyString, "Error should indicate an empty string")
+	assert.ErrorIs(t, err, cache2.ErrEmptyString, "Error should indicate an empty string")
 }
 
 func TestIsKeyValid_ValidKey(t *testing.T) {
@@ -57,7 +59,7 @@ func TestWithValueValidation_NilValue(t *testing.T) {
 	validateFunc := WithValueValidation(nil, "TestWithValueValidation_NilValue")
 	err := validateFunc()
 	require.Error(t, err, "WithValueValidation should return an error for a nil value")
-	assert.ErrorIs(t, err, ErrNil, "Error should indicate a nil value")
+	assert.ErrorIs(t, err, cache2.ErrNil, "Error should indicate a nil value")
 }
 
 func TestWithValueValidation_ValidValue(t *testing.T) {
@@ -70,7 +72,7 @@ func TestWithCtxValidation_NilContext(t *testing.T) {
 	validateFunc := WithCtxValidation(nil, "TestWithCtxValidation_NilContext")
 	err := validateFunc()
 	require.Error(t, err, "WithCtxValidation should return an error for a nil context")
-	assert.ErrorIs(t, err, ErrNilCtx, "Error should indicate a nil context")
+	assert.ErrorIs(t, err, cache2.ErrNilCtx, "Error should indicate a nil context")
 }
 
 func TestWithCtxValidation_CanceledContext(t *testing.T) {
@@ -93,7 +95,7 @@ func TestWithKeyValidation_EmptyString(t *testing.T) {
 	validateFunc := WithKeyValidation("", "TestWithKeyValidation_EmptyString")
 	err := validateFunc()
 	require.Error(t, err, "WithKeyValidation should return an error for an empty string")
-	assert.ErrorIs(t, err, ErrEmptyString, "Error should indicate an empty string")
+	assert.ErrorIs(t, err, cache2.ErrEmptyString, "Error should indicate an empty string")
 }
 
 func TestWithKeyValidation_ValidKey(t *testing.T) {
@@ -109,7 +111,7 @@ func TestWithClosedValidation_ClosedCache(t *testing.T) {
 	validateFunc := WithClosedValidation(&closed, "TestWithClosedValidation_ClosedCache")
 	err := validateFunc()
 	require.Error(t, err, "WithClosedValidation should return an error if the cache is closed")
-	assert.ErrorIs(t, err, ErrCacheClosed, "Error should indicate the cache is closed")
+	assert.ErrorIs(t, err, cache2.ErrCacheClosed, "Error should indicate the cache is closed")
 }
 
 func TestWithClosedValidation_OpenCache(t *testing.T) {

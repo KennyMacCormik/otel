@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"reflect"
 	"sync/atomic"
+
+	cache2 "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
 )
 
 type ValidateFunc func() error
@@ -39,7 +41,7 @@ func WithKeyValidation(key string, wrap string) func() error {
 func WithClosedValidation(closed *atomic.Bool, wrap string) func() error {
 	return func() error {
 		if closed.Load() {
-			return fmt.Errorf("%s: %w", wrap, ErrCacheClosed)
+			return fmt.Errorf("%s: %w", wrap, cache2.ErrCacheClosed)
 		}
 		return nil
 	}
@@ -48,7 +50,7 @@ func WithClosedValidation(closed *atomic.Bool, wrap string) func() error {
 func WithCtxValidation(ctx context.Context, wrap string) func() error {
 	return func() error {
 		if ctx == nil || ctx.Err() != nil {
-			return NewErrNilOrErrCtx(wrap, ctx)
+			return cache2.NewErrNilOrErrCtx(wrap, ctx)
 		}
 		return nil
 	}
@@ -56,7 +58,7 @@ func WithCtxValidation(ctx context.Context, wrap string) func() error {
 
 func IsKeyValid(key string, callerInfo string) error {
 	if key == "" {
-		return NewErrInvalidValue(key, ErrEmptyString, callerInfo)
+		return cache2.NewErrInvalidValue(key, cache2.ErrEmptyString, callerInfo)
 	}
 	return nil
 }
@@ -65,7 +67,7 @@ func IsKeyValid(key string, callerInfo string) error {
 func IsNotNil(value any, callerInfo string) error {
 	// The interface itself is nil
 	if value == nil {
-		return NewErrInvalidValue(value, ErrNil, callerInfo)
+		return cache2.NewErrInvalidValue(value, cache2.ErrNil, callerInfo)
 	}
 
 	// Check if it is a nil pointer, nil interface, or empty function
@@ -76,11 +78,11 @@ func IsNotNil(value any, callerInfo string) error {
 	switch kind {
 	case reflect.Ptr, reflect.Interface:
 		if val.IsNil() {
-			return NewErrInvalidValue(value, ErrNilPointerOrNilInterface, callerInfo)
+			return cache2.NewErrInvalidValue(value, cache2.ErrNilPointerOrNilInterface, callerInfo)
 		}
 	case reflect.Func:
 		if val.IsNil() {
-			return NewErrInvalidValue(value, ErrNilFunc, callerInfo)
+			return cache2.NewErrInvalidValue(value, cache2.ErrNilFunc, callerInfo)
 		}
 	}
 

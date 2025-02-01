@@ -4,14 +4,12 @@ import (
 	"github.com/KennyMacCormik/common/gin_factory"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
-	"github.com/KennyMacCormik/otel/backend/internal/http/handlers/storage"
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
-
 	httpWithGin "github.com/KennyMacCormik/otel/backend/pkg/gin"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_rate_limiter"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
-
-	"github.com/KennyMacCormik/otel/backend/internal/http/middleware"
+	storageHandlers "github.com/KennyMacCormik/otel/backend/pkg/http/handlers/storage"
+	"github.com/KennyMacCormik/otel/backend/pkg/http/middleware"
 )
 
 const otelGinMiddlewareName = "api"
@@ -40,7 +38,7 @@ func initRouter(conf *Config, st cache.CacheInterface) *gin_factory.GinFactory {
 		).GetRateLimiter(),
 	)
 
-	ginFactory.AddHandlers(storage.NewStorageHandler(st).GetGinStorageHandler())
+	ginFactory.AddHandlers(storageHandlers.NewStorageHandler(st).GetGinStorageHandler())
 
 	return ginFactory
 }

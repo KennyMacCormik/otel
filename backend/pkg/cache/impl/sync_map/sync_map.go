@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
+	cacheErrors "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
 )
 
 const (
@@ -66,7 +67,7 @@ func (sm *syncMap) Get(ctx context.Context, key string) (any, error) {
 		if ctx.Err() != nil {
 			return nil, fmt.Errorf("%s: %w", wrap, ctx.Err())
 		}
-		return nil, cache.NewErrKeyNotFound(key)
+		return nil, cacheErrors.NewErrKeyNotFound(key)
 	}
 
 	return value, nil
@@ -181,7 +182,7 @@ func (sm *syncMap) GetKeys(ctx context.Context) ([]string, error) {
 
 		strKey, ok := key.(string)
 		if !ok {
-			err = cache.NewErrTypeCastFailed(key, value, wrap)
+			err = cacheErrors.NewErrTypeCastFailed(key, value, wrap)
 			return false
 		}
 
