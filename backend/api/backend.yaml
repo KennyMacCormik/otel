@@ -15,6 +15,9 @@ paths:
           required: true
           schema:
             type: string
+          description: |
+            The key **must be URL-encoded** when making a request.
+            Example: `my key` → `my%20key`
       responses:
         200:
           description: Successfully retrieved value
@@ -43,6 +46,9 @@ paths:
           required: true
           schema:
             type: string
+          description: |
+            The key **must be URL-encoded** when making a request.
+            Example: `my key` → `my%20key`
       responses:
         200:
           description: Successfully deleted key
@@ -64,8 +70,10 @@ paths:
               properties:
                 key:
                   type: string
+                  description: "The key must be a raw string (not URL-encoded)."
                 value:
                   type: string
+                  description: "The value must be a raw string (not URL-encoded)."
       responses:
         200:
           description: Successfully updated existing value
@@ -74,7 +82,7 @@ paths:
         204:
           description: Successful request, nothing changed
         400:
-          $ref: '#/components/responses/BadRequest'
+          description: Bad request (malformed input or missing required fields)
         500:
           $ref: '#/components/responses/InternalServerError'
 
@@ -82,6 +90,22 @@ components:
   responses:
     BadRequest:
       description: Bad request (malformed input or missing required fields)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+          examples:
+            KeyNotEncoded:
+              summary: Key must be URL-encoded
+              value:
+                error: "key must be URL-encoded"
+            NoKeyProvided:
+              summary: No key provided
+              value:
+                error: "no key provided"
     NotFound:
       description: Key not found
     InternalServerError:

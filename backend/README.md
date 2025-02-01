@@ -7,7 +7,7 @@ The **Backend API** provides a simple RESTful interface to manage key-value stor
 
 ### **Retrieve a Value by Key**
 - **GET** `/storage/{key}`
-- **Description**: Fetches the stored value for a given key.
+- **Description**: Fetches the stored value for a given key. Key _**must**_ be URL-encoded.
 - **Responses**:
     - `200 OK`: Returns the key-value pair.
     - `400 Bad Request`: Malformed request.
@@ -18,8 +18,8 @@ The **Backend API** provides a simple RESTful interface to manage key-value stor
 - **PUT** `/storage`
 - **Description**: Creates or updates a key-value pair.
 - **Request Body**:
-    - `key` (string, required)
-    - `value` (string, required)
+    - `key` (string, required, _**mustn't**_ be URL-encoded)
+    - `value` (string, required, _**mustn't**_ be URL-encoded)
 - **Responses**:
     - `200 OK`: Successfully updated existing value.
     - `201 OK`: Successfully created a new value.
@@ -29,7 +29,7 @@ The **Backend API** provides a simple RESTful interface to manage key-value stor
 
 ### **Delete a Key-Value Pair**
 - **DELETE** `/storage/{key}`
-- **Description**: Removes a key-value pair from storage.
+- **Description**: Removes a key-value pair from storage. Key _**must**_ be URL-encoded.
 - **Responses**:
     - `204 OK`: Successfully deleted.
     - `400 Bad Request`: Malformed request.

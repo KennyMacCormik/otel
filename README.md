@@ -3,99 +3,155 @@
 
 ## Overview
 This project includes two main components:
-1. **Backend**: An in-memory key-value database with a REST API interface.
+1. [**Backend**](https://github.com/KennyMacCormik/otel/tree/main/backend)
 2. **API**: A REST API that interacts with the backend.
-
-The configuration for both components can be controlled via environment variables. This document outlines the minimal and full configuration options for each component, along with setup details.
 
 ---
 
-## Usage Flow
+## Storage API Usage Flow
 
-This section demonstrates the typical usage flow of the API for interacting with the backend's in-memory key-value database. The flow includes retrieving, storing, and deleting key-value pairs.
+This document outlines the expected behavior of the storage API when interacting with keys that require URL encoding.
 
+---
 
-### Step 1: Retrieve a Non-Existent Key (`GET`)
-Attempting to retrieve a key that does not exist in the database will result in a `not found` response.
+## Request Flow
 
-**Request:**
-```bash
-curl --location 'http://localhost:8080/storage/testKey' \
+### **1. Attempt to Retrieve a Non-Existent URL-Encoded Key**
+
+#### Request:
+```sh
+curl --location 'http://localhost:8081/storage/te%24tKey' \
 --data ''
 ```
 
-**Response:**
-```json
-"not found"
+#### Response:
+- **Status Code:** `404 Not Found`
+
+---
+
+### **2. Attempt to Retrieve a Non-Existent Key that Doesn’t Require Encoding**
+
+#### Request:
+```sh
+curl --location 'http://localhost:8081/storage/testKey' \
+--data ''
 ```
 
-### Step 2: Store a Key-Value Pair (`POST`)
-Store a new key-value pair in the database using the `POST` method.
+#### Response:
+- **Status Code:** `404 Not Found`
 
-**Request:**
-```bash
-curl --location 'http://localhost:8080/storage' \
+---
+
+### **3. Attempt to Retrieve a Non-Encoded Key (Rejected)**
+
+#### Request:
+```sh
+curl --location 'http://localhost:8081/storage/te$tKey' \
+--data ''
+```
+
+#### Response:
+- **Status Code:** `400 Bad Request`
+- **Response Body:**
+```json
+{
+    "error": "key must be URL-encoded"
+}
+```
+
+---
+
+### **4. Store a New Key-Value Pair (First Insertion)**
+
+#### Request:
+```sh
+curl --location --request PUT 'http://localhost:8081/storage' \
 --data '{
-    "key":"testKey",
+    "key":"te$tKey",
     "value":"testValue"
 }'
 ```
 
-**Response:**
-```json
-"ok"
+#### Response:
+- **Status Code:** `201 Created`
+
+---
+
+### **5. Store the Same Key-Value Pair (No Change)**
+
+#### Request:
+```sh
+curl --location --request PUT 'http://localhost:8081/storage' \
+--data '{
+    "key":"te$tKey",
+    "value":"testValue"
+}'
 ```
 
-### Step 3: Retrieve the Stored Key-Value Pair (`GET`)
-Retrieve the previously stored key-value pair.
+#### Response:
+- **Status Code:** `204 No Content`
 
-**Request:**
-```bash
-curl --location 'http://localhost:8080/storage/testKey' \
+---
+
+### **6. Update Existing Key with a New Value**
+
+#### Request:
+```sh
+curl --location --request PUT 'http://localhost:8081/storage' \
+--data '{
+    "key":"te$tKey",
+    "value":"testValue1"
+}'
+```
+
+#### Response:
+- **Status Code:** `200 OK`
+
+---
+
+### **7. Retrieve the Stored Key-Value Pair**
+
+#### Request:
+```sh
+curl --location 'http://localhost:8081/storage/te%24tKey' \
 --data ''
 ```
 
-**Response:**
+#### Response:
+- **Status Code:** `200 OK`
+- **Response Body:**
 ```json
 {
-    "key": "testKey",
-    "value": "testValue"
+    "key": "te$tKey",
+    "value": "testValue1"
 }
-```
-
-### Step 4: Delete the Key-Value Pair (`DELETE`)
-Delete the stored key-value pair using the `DELETE` method.
-
-**Request:**
-```bash
-curl --location --request DELETE 'http://localhost:8080/storage/testKey' \
---data ''
-```
-
-**Response:**
-```json
-"ok"
-```
-
-### Step 5: Attempt to Retrieve the Deleted Key (`GET`)
-Attempting to retrieve a key that has been deleted will again result in a `not found` response.
-
-**Request:**
-```bash
-curl --location 'http://localhost:8080/storage/testKey' \
---data ''
-```
-
-**Response:**
-```json
-"not found"
 ```
 
 ---
 
-## Configuration
+### **8. Delete the Stored Key-Value Pair**
 
-- [Backend](https://github.com/KennyMacCormik/otel/tree/main/backend)
+#### Request:
+```sh
+curl --location --request DELETE 'http://localhost:8081/storage/te%24tKey' \
+--data ''
+```
+
+#### Response:
+- **Status Code:** `204 No Content`
+
+---
+
+### **9. Verify Deletion of Key**
+
+#### Request:
+```sh
+curl --location 'http://localhost:8081/storage/te%24tKey' \
+--data ''
+```
+
+#### Response:
+- **Status Code:** `404 Not Found`
 
 ---
 

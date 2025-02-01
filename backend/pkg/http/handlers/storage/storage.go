@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 
 	"github.com/gin-gonic/gin"
 
@@ -32,7 +34,7 @@ func (s *StorageHandler) ginGet() func(c *gin.Context) {
 	return func(c *gin.Context) {
 		key, err := getKey(c)
 		if err != nil {
-			c.Status(http.StatusBadRequest)
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
 
@@ -95,5 +97,27 @@ func getKey(c *gin.Context) (string, error) {
 		return "", fmt.Errorf("no key provided")
 	}
 
+	if !isUrlEncoded(strings.TrimPrefix(c.Request.RequestURI, "/storage/"), key) {
+		return "", fmt.Errorf("key must be URL-encoded")
+	}
+
 	return key, nil
+}
+
+func isUrlEncoded(rawKey, ginDecodedKey string) bool {
+	rawEscaped := url.QueryEscape(rawKey)
+
+	// if rawEscaped == rawKey,
+	// it indicated that rawKey is safe by itself
+	if rawEscaped == rawKey {
+		return true
+	}
+
+	// if decoding results in ginDecodedKey,
+	// it indicates that the raw string contained unencoded values
+	if s, err := url.QueryUnescape(rawEscaped); err == nil && s == ginDecodedKey {
+		return false
+	}
+
+	return true
 }
