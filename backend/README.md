@@ -22,8 +22,8 @@ The **Backend API** provides a simple RESTful interface to manage key-value stor
     - `value` (string, required)
 - **Responses**:
     - `200 OK`: Successfully updated existing value.
-    - `200 OK`: Successfully created a new value.
-    - `200 OK`: Successful request, nothing changed.
+    - `201 OK`: Successfully created a new value.
+    - `204 OK`: Successful request, nothing changed.
     - `400 Bad Request`: Malformed request.
     - `500 Internal Server Error`: Unexpected server error.
 
@@ -31,23 +31,9 @@ The **Backend API** provides a simple RESTful interface to manage key-value stor
 - **DELETE** `/storage/{key}`
 - **Description**: Removes a key-value pair from storage.
 - **Responses**:
-    - `200 OK`: Successfully deleted.
+    - `204 OK`: Successfully deleted.
     - `400 Bad Request`: Malformed request.
     - `500 Internal Server Error`: Unexpected server error.
-
-## Error Responses
-All error responses follow this structure:
-```json
-{
-  "err": "error message"
-}
-```
-### Common Errors:
-| Status Code | Message                     |
-|-------------|-----------------------------|
-| `400`       | "malformed request"         |
-| `404`       | "not found"                 |
-| `500`       | "internal server error"     |
 
 ## OpenTelemetry Integration
 This API integrates with **OpenTelemetry** for distributed tracing, ensuring detailed observability across microservices.
@@ -121,14 +107,11 @@ This section outlines available environment variables to configure the backend s
 Set the environment variables before running the service. For example:
 
 ```sh
-export GRPC_HOST=127.0.0.1
-export GRPC_PORT=50051
 export LOG_FORMAT=json
 export LOG_LEVEL=info
 export HTTP_HOST=0.0.0.0
 export HTTP_PORT=8080
 export OTEL_ENDPOINT="http://otel-collector.example.com:4318"
-export RATE_LIMITER_MAX_CONN=1000
 ```
 
 These parameters ensure proper configuration of the microservices, enabling secure, efficient, and scalable operation.
