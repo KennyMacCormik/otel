@@ -3,12 +3,14 @@ package syncMap
 import (
 	"context"
 	"fmt"
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+
+	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
 
 const testKeyCapacity = 128

@@ -104,7 +104,7 @@ curl --location 'http://localhost:8080/storage/testKey' \
 - Add Swagger/OpenAPI documentation for the API and Backend endpoints (api, ~~backend~~, ~~otel-common~~)
 - Define app behavior in more details (api, ~~backend~~, ~~otel-common~~)
 - Add prometheus exporter
-- Fix main.go (and all other files too) to remove useless comments and add emtpy strings (api, ~~backend~~, otel-common)
+- Fix main.go (and all other files too) to remove useless comments and add emtpy strings (api, backend, otel-common)
 - Sort imports (Golnad have settings for that) (api, ~~backend~~, otel-common)
 - Add [linters](https://golangci-lint.run/usage/linters/)
 - Change myinit name (api, ~~backend~~, otel-common)

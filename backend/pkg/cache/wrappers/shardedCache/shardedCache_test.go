@@ -2,12 +2,15 @@ package shardedCache
 
 import (
 	"context"
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache"
-	mockCache "github.com/KennyMacCormik/HerdMaster/pkg/cache/mocks"
+	"testing"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"testing"
+
+	mockCache "github.com/KennyMacCormik/otel/backend/pkg/cache/mocks"
+
+	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
 
 const testShardNum = 3

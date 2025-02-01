@@ -1,20 +1,19 @@
 package ttlCache
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache"
-	mockCache "github.com/KennyMacCormik/HerdMaster/pkg/cache/mocks"
-	"github.com/KennyMacCormik/HerdMaster/pkg/log"
+	"testing"
+	"time"
+
 	"github.com/stretchr/testify/assert"
 	mock "github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"io"
-	"os"
-	"testing"
-	"time"
+
+	"github.com/KennyMacCormik/otel/backend/pkg/cache"
+
+	mockCache "github.com/KennyMacCormik/otel/backend/pkg/cache/mocks"
 )
 
 // TODO: add test that TTL works as expected
@@ -88,31 +87,6 @@ func TestTtlCache_New(t *testing.T) {
 		assert.Equal(t, defaultGetKeysTTL, cacheImpl.getKeysTTL, "expect defaultGetKeysTTL")
 		assert.Equal(t, defaultDeleteExpiredKeysTTL, cacheImpl.deleteExpiredKeysTTL, "expect defaultDeleteExpiredKeysTTL")
 		assert.Equal(t, defaultSkewPercent, cacheImpl.skewPercent, "expect defaultSkewPercent")
-	})
-
-	t.Run("with logger", func(t *testing.T) {
-		lg, _ := log.ConfigureLogger(log.WithOutput(io.Discard))
-		ttl, err := NewTtlCache(c,
-			WithLogger(lg),
-		)
-		require.NoError(t, err, "expect no error with default configuration")
-		assert.NotNil(t, ttl, "expect result not nil with default configuration")
-		assert.Implements(t, (*cache.Interface)(nil), ttl, "result should implement cache.Interface")
-
-		cacheImpl := typeAssertion(t, ttl)
-		assert.Equal(t, lg, cacheImpl.lg, "expect same logger")
-	})
-
-	t.Run("with invalid logger", func(t *testing.T) {
-		ttl, err := NewTtlCache(c,
-			WithLogger(nil),
-		)
-		require.NoError(t, err, "expect no error with default configuration")
-		assert.NotNil(t, ttl, "expect result not nil with default configuration")
-		assert.Implements(t, (*cache.Interface)(nil), ttl, "result should implement cache.Interface")
-
-		cacheImpl := typeAssertion(t, ttl)
-		assert.NotNil(t, cacheImpl.lg, "expect working logger")
 	})
 
 	t.Run("with nil cache", func(t *testing.T) {
@@ -490,57 +464,6 @@ func TestTtlCache_ExpireCache(t *testing.T) {
 		require.NotPanics(t, func() {
 			cacheImpl.expireCache()
 		}, "expireCache should not panic when the close channel is closed")
-	})
-}
-
-func TestTtlCache_DeleteExpiredKey(t *testing.T) {
-	t.Run("deleteExpiredKey deletes expired key successfully", func(t *testing.T) {
-		r, w, _ := os.Pipe()
-		defer func() {
-			_ = r.Close()
-			_ = w.Close()
-		}()
-
-		lg, _ := log.ConfigureLogger(log.WithOutput(w))
-		c, ttl := getTtlCacheMock(t, WithLogger(lg))
-		c.EXPECT().Get(mock.Anything, "expiredKey").Return(
-			&cacheEntry{
-				"expiredValue",
-				time.Now().Add(-5 * time.Second),
-			},
-			nil,
-		).Once()
-		c.EXPECT().Delete(mock.Anything, "expiredKey").Return(nil).Once()
-
-		cacheImpl := typeAssertion(t, ttl)
-		cacheImpl.deleteExpiredKey("expiredKey")
-
-		_ = w.Close()
-		out := &bytes.Buffer{}
-		_, _ = io.Copy(out, r)
-
-		require.Equal(t, "", out.String(), "expect not to log anything")
-	})
-
-	t.Run("deleteExpiredKey logs error on failure", func(t *testing.T) {
-		r, w, _ := os.Pipe()
-		defer func() {
-			_ = r.Close()
-			_ = w.Close()
-		}()
-
-		lg, _ := log.ConfigureLogger(log.WithOutput(w))
-		c, ttl := getTtlCacheMock(t, WithLogger(lg))
-		c.EXPECT().Get(mock.Anything, "failedKey").Return(nil, assert.AnError).Once()
-
-		cacheImpl := typeAssertion(t, ttl)
-		cacheImpl.deleteExpiredKey("failedKey")
-
-		_ = w.Close()
-		out := &bytes.Buffer{}
-		_, _ = io.Copy(out, r)
-
-		require.Contains(t, out.String(), assert.AnError.Error(), "expect not to log anything")
 	})
 }
 

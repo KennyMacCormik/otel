@@ -1,17 +1,18 @@
 package http
 
 import (
-	"github.com/KennyMacCormik/HerdMaster/pkg/gin/router"
-	"github.com/gin-gonic/gin"
-	"github.com/stretchr/testify/assert"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/KennyMacCormik/common/gin_factory"
+	"github.com/gin-gonic/gin"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestNewHttpServer(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	gf := router.NewGinFactory()
+	gf := gin_factory.NewGinFactory()
 	gf.AddHandlers(func(r *gin.Engine) {
 		r.GET("/ping", func(c *gin.Context) {
 			c.String(http.StatusOK, "pong")
@@ -35,7 +36,7 @@ func TestNewHttpServer(t *testing.T) {
 
 func TestHttpServer_StartAndClose(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	gf := router.NewGinFactory()
+	gf := gin_factory.NewGinFactory()
 	gf.AddHandlers(func(r *gin.Engine) {
 		r.GET("/ping", func(c *gin.Context) {
 			c.String(http.StatusOK, "pong")
@@ -71,7 +72,7 @@ func TestHttpServer_StartAndClose(t *testing.T) {
 
 func TestHttpServer_CloseTimeout(t *testing.T) {
 	gin.SetMode(gin.TestMode)
-	gf := router.NewGinFactory()
+	gf := gin_factory.NewGinFactory()
 
 	// create channels for sync
 	serverStarted, requestInProgress := make(chan struct{}), make(chan struct{})

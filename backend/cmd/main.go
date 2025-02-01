@@ -15,8 +15,6 @@ import (
 	"github.com/KennyMacCormik/otel/backend/internal/storage"
 )
 
-const errExit = 1
-
 func main() {
 	conf := initApp.GetConfig()
 	if conf == nil {

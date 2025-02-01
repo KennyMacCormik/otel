@@ -4,13 +4,14 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache"
-	"github.com/KennyMacCormik/HerdMaster/pkg/log"
-	"log/slog"
 	"math/rand"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/KennyMacCormik/common/log"
+
+	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
 
 const (
@@ -37,25 +38,9 @@ type ttlCache struct {
 	closedOnce sync.Once
 	closed     atomic.Bool
 	closeCh    chan struct{}
-
-	lg *slog.Logger
 }
 
 type InitOptions func(t *ttlCache)
-
-func WithLogger(lg *slog.Logger) InitOptions {
-	return func(t *ttlCache) {
-		const wrap = "NewTtlCache/WithLogger func"
-
-		err := cache.WithValueValidation(lg, wrap)()
-		if err != nil {
-			t.lg, _ = log.GetLogger()
-			t.lg.Warn("failed to init logger", "err", err)
-			return
-		}
-		t.lg = lg
-	}
-}
 
 func WithOverrideDefaults(ttl, tickerTTL, getKeysTTL,
 	deleteExpiredKeysTTL time.Duration, skewPercent int) InitOptions {
@@ -99,7 +84,6 @@ func NewTtlCache(impl cache.Interface, opts ...InitOptions) (cache.Interface, er
 		skewPercent:          defaultSkewPercent,
 		closeCh:              make(chan struct{}),
 	}
-	t.lg, _ = log.GetLogger()
 
 	for _, opt := range opts {
 		opt(t)
@@ -223,17 +207,16 @@ func (t *ttlCache) deleteExpiredKey(key string) {
 	const wrap = "ttlCache/deleteExpiredKey"
 	ctx, cancel := context.WithTimeout(context.Background(), t.deleteExpiredKeysTTL)
 	defer cancel()
-	// TODO: add logging
 	// presumably always succeed
 	val, err := t.impl.Get(ctx, key)
 	if err != nil {
-		t.lg.Error(fmt.Sprintf("%s: failed to get key: %s", wrap, key), "key", key, "err", err)
+		log.Error(fmt.Sprintf("%s: failed to get key: %s", wrap, key), "key", key, "err", err)
 		return
 	}
 	// might fail
 	castedValue, ok := val.(*cacheEntry)
 	if !ok {
-		t.lg.Error(fmt.Sprintf("%s: failed to type cast: key [%s]", wrap, key), "key", key, "err", err)
+		log.Error(fmt.Sprintf("%s: failed to type cast: key [%s]", wrap, key), "key", key, "err", err)
 		return
 	}
 	// return if entry not expired
@@ -243,7 +226,7 @@ func (t *ttlCache) deleteExpiredKey(key string) {
 	// actually delete entry
 	err = t.impl.Delete(ctx, key)
 	if err != nil {
-		t.lg.Error(fmt.Sprintf("%s: failed to delete key", wrap), "key", key, "err", err)
+		log.Error(fmt.Sprintf("%s: failed to delete key", wrap), "key", key, "err", err)
 	}
 }
 

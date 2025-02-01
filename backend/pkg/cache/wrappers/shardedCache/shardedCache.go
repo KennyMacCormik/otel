@@ -3,11 +3,13 @@ package shardedCache
 import (
 	"context"
 	"fmt"
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache"
-	"github.com/KennyMacCormik/HerdMaster/pkg/conv"
 	"hash/fnv"
 	"sync"
 	"sync/atomic"
+
+	"github.com/KennyMacCormik/common/conv"
+
+	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
 
 const defaultShardNumber = 10
