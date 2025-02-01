@@ -66,7 +66,7 @@ func (c *Config) getGinConfig() bool {
 		return false
 	}
 
-	c.Log.Format = i.Mode()
+	c.Gin.Mode = i.Mode()
 
 	return true
 }
