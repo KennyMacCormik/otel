@@ -1,6 +1,7 @@
 package init
 
 import (
+	"github.com/KennyMacCormik/otel/otel-common/conf/gin_conf"
 	"github.com/KennyMacCormik/otel/otel-common/conf/http_conf"
 	"github.com/KennyMacCormik/otel/otel-common/conf/logger_conf"
 	"github.com/KennyMacCormik/otel/otel-common/conf/otel_config"
@@ -13,6 +14,10 @@ type Config struct {
 	OTel        OTel
 	RateLimiter RateLimiter
 	Http        Http
+	Gin         Gin
+}
+type Gin struct {
+	Mode string
 }
 type Log struct {
 	Format string
@@ -43,6 +48,7 @@ func GetConfig() *Config {
 		cfg.getHttpConfig,
 		cfg.getOTelConfig,
 		cfg.getRateLimiterConfig,
+		cfg.getGinConfig,
 	}
 
 	for _, fn := range fns {
@@ -52,6 +58,17 @@ func GetConfig() *Config {
 	}
 
 	return cfg
+}
+
+func (c *Config) getGinConfig() bool {
+	i := gin_conf.NewGinConf()
+	if i == nil {
+		return false
+	}
+
+	c.Log.Format = i.Mode()
+
+	return true
 }
 
 func (c *Config) getLoggingConfig() bool {

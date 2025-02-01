@@ -10,7 +10,7 @@ import (
 type rateLimiterConfig struct {
 	MaxRun  int64 `mapstructure:"rate_limiter_max_conn" validate:"min=1,max=100000"`
 	MaxWait int64 `mapstructure:"rate_limiter_max_wait" validate:"min=1,max=100000"`
-	Retry   int64 `mapstructure:"rate_limiter_retry_after" validate:"min=1,max=3600"`
+	Retry   int64 `mapstructure:"rate_limiter_retry_after" validate:"min=1,max=60"`
 }
 
 func NewRateLimiterConfig() conf.RateLimiterConf {

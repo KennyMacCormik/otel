@@ -25,3 +25,7 @@ type OTelConfig interface {
 	Endpoint() string
 	ShutdownTimeout() time.Duration
 }
+
+type GinConfig interface {
+	Mode() string
+}

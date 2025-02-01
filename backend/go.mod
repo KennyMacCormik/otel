@@ -4,7 +4,8 @@ go 1.23.4
 
 require (
 	github.com/KennyMacCormik/HerdMaster v0.7.7
-	github.com/KennyMacCormik/otel/otel-common v0.0.0-00010101000000-000000000000
+	github.com/KennyMacCormik/common/log v0.2.0
+	github.com/KennyMacCormik/otel/otel-common v0.1.0
 	github.com/gin-gonic/gin v1.10.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.59.0
 	go.opentelemetry.io/otel v1.34.0
@@ -14,7 +15,6 @@ require (
 )
 
 require (
-	github.com/KennyMacCormik/common/log v0.2.0 // indirect
 	github.com/KennyMacCormik/common/val v0.1.1 // indirect
 	github.com/bytedance/sonic v1.12.8 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect

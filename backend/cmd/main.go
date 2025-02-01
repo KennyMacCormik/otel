@@ -39,7 +39,7 @@ func main() {
 		defer cancel()
 		err = tp.Shutdown(ctxStop)
 		if err != nil {
-			log.Error("failed to shutdown OTel", "error", err)
+			log.Warn("failed to shutdown OTel", "error", err)
 		}
 	}()
 
@@ -51,7 +51,7 @@ func main() {
 	defer func() {
 		err = httpSvr.Close(conf.Http.ShutdownTimeout)
 		if err != nil {
-			log.Error("failed to shutdown http server", "error", err)
+			log.Warn("failed to shutdown http server", "error", err)
 		}
 	}()
 

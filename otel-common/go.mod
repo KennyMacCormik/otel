@@ -5,7 +5,7 @@ go 1.23.4
 require (
 	github.com/KennyMacCormik/HerdMaster v0.7.7
 	github.com/KennyMacCormik/common/log v0.2.0
-	github.com/KennyMacCormik/common/val v0.1.0
+	github.com/KennyMacCormik/common/val v0.1.1
 	github.com/gin-gonic/gin v1.10.0
 	github.com/google/uuid v1.6.0
 	github.com/spf13/viper v1.19.0
