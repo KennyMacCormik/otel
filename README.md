@@ -126,13 +126,13 @@ curl --location 'http://localhost:8080/storage/testKey' \
   - write val to cache
   - do not stop if cache fails
 - use "service" instead of "compute"
-- add common data types to models
+- add common data types to models (api, ~~backend~~)
 - RateLimiter
   - Store RateLimiter conf in Redis
   - Move RateLimiter metrics to prometheus
   - Move RateLimiter away from logs and traces
   - Fix RateLimiter metrics
-- Remove traces from middleware
+- Remove traces from middleware (api, ~~backend~~)
 - Add error marks to span
 
 ---

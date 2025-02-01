@@ -6,15 +6,15 @@ import (
 
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 	httpWithGin "github.com/KennyMacCormik/otel/backend/pkg/gin"
+	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_get_trace_parent"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_rate_limiter"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
 	storageHandlers "github.com/KennyMacCormik/otel/backend/pkg/http/handlers/storage"
-	"github.com/KennyMacCormik/otel/backend/pkg/http/middleware"
 )
 
 const otelGinMiddlewareName = "api"
 
-func HttpServer(conf *Config, st cache.CacheInterface) *httpWithGin.Server {
+func HttpServer(conf *Config, st cache.CacheInterface) *httpWithGin.GinServer {
 	return httpWithGin.NewHttpServer(
 		conf.Http.Endpoint,
 		initRouter(conf, st),
@@ -28,7 +28,7 @@ func initRouter(conf *Config, st cache.CacheInterface) *gin_factory.GinFactory {
 	ginFactory := gin_factory.NewGinFactory()
 
 	ginFactory.AddMiddleware(
-		middleware.GetTraceParent(),
+		gin_get_trace_parent.GetTraceParent(),
 		otelgin.Middleware(otelGinMiddlewareName),
 		gin_request_id.RequestIDMiddleware(),
 		gin_rate_limiter.NewRateLimiter(

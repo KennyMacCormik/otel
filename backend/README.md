@@ -21,7 +21,9 @@ The **Backend API** provides a simple RESTful interface to manage key-value stor
     - `key` (string, required)
     - `value` (string, required)
 - **Responses**:
-    - `200 OK`: Successfully stored.
+    - `200 OK`: Successfully updated existing value.
+    - `200 OK`: Successfully created a new value.
+    - `200 OK`: Successful request, nothing changed.
     - `400 Bad Request`: Malformed request.
     - `500 Internal Server Error`: Unexpected server error.
 

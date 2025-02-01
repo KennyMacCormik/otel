@@ -1,4 +1,4 @@
-package middleware
+package gin_get_trace_parent
 
 import (
 	"github.com/gin-gonic/gin"
