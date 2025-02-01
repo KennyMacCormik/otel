@@ -1,4 +1,4 @@
-package syncMap
+package sync_map
 
 import (
 	"context"
@@ -13,14 +13,14 @@ import (
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
 
-const testKeyCapacity = 128
+const testKeyCapacity int64 = 128
 const testTimeout = time.Second * 1
 
-func initSyncMap() cache.Interface {
+func initSyncMap() cache.CacheInterface {
 	return NewSyncMapCache(WithOverrideDefaults(testKeyCapacity, testTimeout))
 }
 
-func typeCastCache(t *testing.T, c cache.Interface) *syncMap {
+func typeCastCache(t *testing.T, c cache.CacheInterface) *syncMap {
 	sm, ok := c.(*syncMap)
 	require.True(t, ok, "type cast shall succeed")
 	return sm
@@ -30,7 +30,7 @@ func TestSyncMap_New(t *testing.T) {
 	t.Run("init", func(t *testing.T) {
 		sm := NewSyncMapCache()
 		require.NotNil(t, sm, "cache shall be created")
-		assert.Implements(t, (*cache.Interface)(nil), sm, "cache shall implement cache interface")
+		assert.Implements(t, (*cache.CacheInterface)(nil), sm, "cache shall implement cache interface")
 		impl := typeCastCache(t, sm)
 		assert.Equal(t, defaultKeyCapacity, impl.keyCapacity, "cache shall have keyCapacity = defaultKeyCapacity")
 		assert.Equal(t, defaultTimeout, impl.timeout, "cache shall have timeout = defaultTimeout")
@@ -39,7 +39,7 @@ func TestSyncMap_New(t *testing.T) {
 	t.Run("with override defaults", func(t *testing.T) {
 		sm := NewSyncMapCache(WithOverrideDefaults(testKeyCapacity, testTimeout))
 		require.NotNil(t, sm, "cache shall be created")
-		assert.Implements(t, (*cache.Interface)(nil), sm, "cache shall implement cache interface")
+		assert.Implements(t, (*cache.CacheInterface)(nil), sm, "cache shall implement cache interface")
 
 		impl := typeCastCache(t, sm)
 		assert.Equal(t, testKeyCapacity, impl.keyCapacity, "cache shall have keyCapacity = testKeyCapacity")
@@ -49,7 +49,7 @@ func TestSyncMap_New(t *testing.T) {
 	t.Run("with incorrect settings", func(t *testing.T) {
 		sm := NewSyncMapCache(WithOverrideDefaults(-testKeyCapacity, -testTimeout))
 		require.NotNil(t, sm, "cache shall be created")
-		assert.Implements(t, (*cache.Interface)(nil), sm, "cache shall implement cache interface")
+		assert.Implements(t, (*cache.CacheInterface)(nil), sm, "cache shall implement cache interface")
 
 		impl := typeCastCache(t, sm)
 		assert.Equal(t, defaultKeyCapacity, impl.keyCapacity, "cache shall have keyCapacity = defaultKeyCapacity")
@@ -403,7 +403,7 @@ func TestSyncMap_GetLength(t *testing.T) {
 
 		length, err := sm.GetLength()
 		require.NoError(t, err, "GetLength should not return an error for a non-empty map")
-		assert.Equal(t, 2, length, "GetLength should return the correct count of entries")
+		assert.Equal(t, int64(2), length, "GetLength should return the correct count of entries")
 	})
 
 	t.Run("get length of empty map", func(t *testing.T) {
@@ -411,7 +411,7 @@ func TestSyncMap_GetLength(t *testing.T) {
 
 		length, err := sm.GetLength()
 		require.NoError(t, err, "GetLength should not return an error for an empty map")
-		assert.Equal(t, 0, length, "GetLength should return 0 for an empty map")
+		assert.Equal(t, int64(0), length, "GetLength should return 0 for an empty map")
 	})
 
 	t.Run("get length of closed map", func(t *testing.T) {
@@ -423,7 +423,7 @@ func TestSyncMap_GetLength(t *testing.T) {
 		length, err := sm.GetLength()
 		require.Error(t, err, "GetLength should return an error for a closed map")
 		assert.ErrorIs(t, err, cache.ErrCacheClosed, "GetLength should return an cache.ErrCacheClosed error")
-		assert.Equal(t, 0, length, "GetLength should return 0 for a closed map")
+		assert.Equal(t, int64(0), length, "GetLength should return 0 for a closed map")
 	})
 }
 

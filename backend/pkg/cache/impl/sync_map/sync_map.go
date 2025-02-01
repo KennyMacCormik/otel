@@ -1,4 +1,4 @@
-package syncMap
+package sync_map
 
 import (
 	"context"
@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	defaultKeyCapacity = 128
-	defaultTimeout     = 30 * time.Second
+	defaultKeyCapacity int64 = 128
+	defaultTimeout           = 30 * time.Second
 )
 
 type InitOptions func(sm *syncMap)
@@ -21,11 +21,11 @@ type syncMap struct {
 	closeOnce sync.Once
 	closed    atomic.Bool
 
-	keyCapacity int
+	keyCapacity int64
 	timeout     time.Duration
 }
 
-func NewSyncMapCache(opts ...InitOptions) cache.Interface {
+func NewSyncMapCache(opts ...InitOptions) cache.CacheInterface {
 	c := &syncMap{keyCapacity: defaultKeyCapacity, timeout: defaultTimeout}
 
 	for _, opt := range opts {
@@ -35,7 +35,7 @@ func NewSyncMapCache(opts ...InitOptions) cache.Interface {
 	return c
 }
 
-func WithOverrideDefaults(KeyCapacity int, Timeout time.Duration) InitOptions {
+func WithOverrideDefaults(KeyCapacity int64, Timeout time.Duration) InitOptions {
 	return func(sm *syncMap) {
 		if KeyCapacity <= 0 {
 			KeyCapacity = defaultKeyCapacity
@@ -116,7 +116,7 @@ func (sm *syncMap) Close(ctx context.Context) error {
 	return err
 }
 
-func (sm *syncMap) GetLength() (int, error) {
+func (sm *syncMap) GetLength() (int64, error) {
 	const wrap = "syncMap/Delete"
 	if err := cache.ValidateInput(
 		cache.WithClosedValidation(&sm.closed, wrap),
@@ -124,7 +124,7 @@ func (sm *syncMap) GetLength() (int, error) {
 		return 0, err
 	}
 
-	var i int
+	var i int64
 	sm.m.Range(func(k, v any) bool {
 		i++
 		return true

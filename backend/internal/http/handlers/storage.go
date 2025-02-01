@@ -33,7 +33,7 @@ type errorMsg struct {
 //	lg.Error(msg, "error", err)
 // }
 
-func NewStorageHandlers(st cache.Interface) func(*gin.Engine) {
+func NewStorageHandlers(st cache.CacheInterface) func(*gin.Engine) {
 	return func(router *gin.Engine) {
 		router.GET("/storage/:key", get(st))
 		router.PUT("/storage", set(st))
@@ -56,7 +56,7 @@ func getKey(c *gin.Context) (string, error) {
 	return key, nil
 }
 
-func get(st cache.Interface) func(c *gin.Context) {
+func get(st cache.CacheInterface) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		const (
 			traceName = "backend/http/get"
@@ -98,7 +98,7 @@ func get(st cache.Interface) func(c *gin.Context) {
 	}
 }
 
-func set(st cache.Interface) func(c *gin.Context) {
+func set(st cache.CacheInterface) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		const (
 			traceName = "backend/http/set"
@@ -135,7 +135,7 @@ func set(st cache.Interface) func(c *gin.Context) {
 	}
 }
 
-func del(st cache.Interface) func(c *gin.Context) {
+func del(st cache.CacheInterface) func(c *gin.Context) {
 	return func(c *gin.Context) {
 		const (
 			traceName = "backend/http/set"

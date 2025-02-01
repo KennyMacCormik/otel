@@ -1,4 +1,4 @@
-package shardedCache
+package sharded_cache
 
 import (
 	"context"
@@ -13,13 +13,13 @@ import (
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
 
-const testShardNum = 3
+const testShardNum int64 = 3
 
-func initFunc(t *testing.T) cache.Interface {
-	return mockCache.NewMockInterface(t)
+func initFunc(t *testing.T) cache.CacheInterface {
+	return mockCache.NewMockCacheInterface(t)
 }
 
-func typeCast(t *testing.T, c cache.Interface) *shardedCache {
+func typeCast(t *testing.T, c cache.CacheInterface) *shardedCache {
 	impl, ok := c.(*shardedCache)
 	require.True(t, ok, "type cast shall succeed")
 	return impl
@@ -27,47 +27,47 @@ func typeCast(t *testing.T, c cache.Interface) *shardedCache {
 
 func TestShardedCache_New(t *testing.T) {
 	t.Run("default", func(t *testing.T) {
-		fn := func() cache.Interface { return initFunc(t) }
+		fn := func() cache.CacheInterface { return initFunc(t) }
 		c, err := NewShardedCache(fn)
 		require.NoError(t, err)
 		require.NotNil(t, c, "should return non")
-		require.Implements(t, (*cache.Interface)(nil), c, "result should implement cache.Interface")
+		require.Implements(t, (*cache.CacheInterface)(nil), c, "result should implement cache.Interface")
 
 		sc := typeCast(t, c)
 		require.NotNil(t, sc, "should return shardedCache")
 		assert.Equal(t, defaultShardNumber, sc.shardNumber, "shard number should be default")
-		assert.Equal(t, defaultShardNumber, len(sc.shards), "shards should be init and equal to default")
+		assert.Equal(t, defaultShardNumber, int64(len(sc.shards)), "shards should be init and equal to default")
 		assert.False(t, sc.closed.Load(), "cache should not be closed")
 		assert.NotNil(t, sc.closer, "closer func shall be not nil")
 	})
 
 	t.Run("override default", func(t *testing.T) {
-		fn := func() cache.Interface { return initFunc(t) }
+		fn := func() cache.CacheInterface { return initFunc(t) }
 		c, err := NewShardedCache(fn, WithOverrideDefaults(testShardNum))
 		require.NoError(t, err)
 		require.NotNil(t, c, "should return non")
-		require.Implements(t, (*cache.Interface)(nil), c, "result should implement cache.Interface")
+		require.Implements(t, (*cache.CacheInterface)(nil), c, "result should implement cache.Interface")
 
 		sc := typeCast(t, c)
 		require.NotNil(t, sc, "should return shardedCache")
 		assert.Equal(t, testShardNum, sc.shardNumber, "shard number should be default")
-		assert.Equal(t, testShardNum, len(sc.shards), "shards should be init and equal to default")
+		assert.Equal(t, testShardNum, int64(len(sc.shards)), "shards should be init and equal to default")
 		assert.False(t, sc.closed.Load(), "cache should not be closed")
 		assert.NotNil(t, sc.closer, "closer func shall be not nil")
 	})
 
 	t.Run("override default with incorrect value", func(t *testing.T) {
 		const shardNumber = -30
-		fn := func() cache.Interface { return initFunc(t) }
+		fn := func() cache.CacheInterface { return initFunc(t) }
 		c, err := NewShardedCache(fn, WithOverrideDefaults(shardNumber))
 		require.NoError(t, err)
 		require.NotNil(t, c, "should return non")
-		require.Implements(t, (*cache.Interface)(nil), c, "result should implement cache.Interface")
+		require.Implements(t, (*cache.CacheInterface)(nil), c, "result should implement cache.Interface")
 
 		sc := typeCast(t, c)
 		require.NotNil(t, sc, "should return shardedCache")
 		assert.Equal(t, defaultShardNumber, sc.shardNumber, "shard number should be default")
-		assert.Equal(t, defaultShardNumber, len(sc.shards), "shards should be init and equal to default")
+		assert.Equal(t, defaultShardNumber, int64(len(sc.shards)), "shards should be init and equal to default")
 		assert.False(t, sc.closed.Load(), "cache should not be closed")
 		assert.NotNil(t, sc.closer, "closer func shall be not nil")
 	})
@@ -82,9 +82,9 @@ func TestShardedCache_New(t *testing.T) {
 
 func TestShardedCache_GetShardedCacheLen(t *testing.T) {
 	t.Run("Success", func(t *testing.T) {
-		fn := func() cache.Interface {
-			m := mockCache.NewMockInterface(t)
-			m.On("GetLength").Return(10, nil).Once()
+		fn := func() cache.CacheInterface {
+			m := mockCache.NewMockCacheInterface(t)
+			m.On("GetLength").Return(int64(10), nil).Once()
 			return m
 		}
 
@@ -98,9 +98,9 @@ func TestShardedCache_GetShardedCacheLen(t *testing.T) {
 	})
 
 	t.Run("ErrorOnShard", func(t *testing.T) {
-		fn := func() cache.Interface {
-			m := mockCache.NewMockInterface(t)
-			m.On("GetLength").Return(0, assert.AnError)
+		fn := func() cache.CacheInterface {
+			m := mockCache.NewMockCacheInterface(t)
+			m.On("GetLength").Return(int64(0), assert.AnError)
 			return m
 		}
 
@@ -117,8 +117,8 @@ func TestShardedCache_GetShardedCacheLen(t *testing.T) {
 
 func TestShardedCache_LoopShards(t *testing.T) {
 	t.Run("AllShardsSuccessful", func(t *testing.T) {
-		fn := func() cache.Interface {
-			m := mockCache.NewMockInterface(t)
+		fn := func() cache.CacheInterface {
+			m := mockCache.NewMockCacheInterface(t)
 			m.On("GetKeys", mock.Anything).Return([]string{"key1", "key2"}, nil)
 			return m
 		}
@@ -141,12 +141,12 @@ func TestShardedCache_LoopShards(t *testing.T) {
 		for res := range resultCh {
 			keys = append(keys, res...)
 		}
-		assert.Len(t, keys, 2*defaultShardNumber, "Result should contain keys from all shards")
+		assert.Len(t, keys, int(2*defaultShardNumber), "Result should contain keys from all shards")
 	})
 
 	t.Run("OneShardFails", func(t *testing.T) {
-		fn := func() cache.Interface {
-			m := mockCache.NewMockInterface(t)
+		fn := func() cache.CacheInterface {
+			m := mockCache.NewMockCacheInterface(t)
 			m.On("GetKeys", mock.Anything).Return(nil, assert.AnError)
 			return m
 		}
@@ -174,7 +174,7 @@ func TestShardedCache_GetShardNumber(t *testing.T) {
 	t.Run("ValidKey", func(t *testing.T) {
 		key := "testKey"
 		shard := getShardNumber(key, defaultShardNumber)
-		assert.GreaterOrEqual(t, shard, 0, "Shard number should be non-negative")
+		assert.GreaterOrEqual(t, shard, int64(0), "Shard number should be non-negative")
 		assert.Less(t, shard, defaultShardNumber, "Shard number should be within range of shard count")
 	})
 

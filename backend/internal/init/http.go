@@ -16,7 +16,7 @@ import (
 
 const otelGinMiddlewareName = "api"
 
-func HttpServer(conf *Config, st cache.Interface) *httpWithGin.Server {
+func HttpServer(conf *Config, st cache.CacheInterface) *httpWithGin.Server {
 	return httpWithGin.NewHttpServer(
 		conf.Http.Endpoint,
 		initRouter(conf, st),
@@ -26,7 +26,7 @@ func HttpServer(conf *Config, st cache.Interface) *httpWithGin.Server {
 	)
 }
 
-func initRouter(conf *Config, st cache.Interface) *gin_factory.GinFactory {
+func initRouter(conf *Config, st cache.CacheInterface) *gin_factory.GinFactory {
 	ginFactory := gin_factory.NewGinFactory()
 	ginFactory.AddMiddleware(
 		middleware.GetTraceParent(),

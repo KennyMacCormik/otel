@@ -1,4 +1,4 @@
-package ttlCache
+package ttl_cache
 
 import (
 	"context"
@@ -15,11 +15,11 @@ import (
 )
 
 const (
-	defaultTTL                  = time.Minute
-	defaultTickerTTL            = 30 * time.Second
-	defaultGetKeysTTL           = 10 * time.Second
-	defaultDeleteExpiredKeysTTL = 1 * time.Second
-	defaultSkewPercent          = 10
+	defaultTTL                        = time.Minute
+	defaultTickerTTL                  = 30 * time.Second
+	defaultGetKeysTTL                 = 10 * time.Second
+	defaultDeleteExpiredKeysTTL       = 1 * time.Second
+	defaultSkewPercent          int64 = 10
 )
 
 var ErrExpired = errors.New("entry expired")
@@ -29,10 +29,10 @@ type cacheEntry struct {
 	ExpiresAt time.Time
 }
 type ttlCache struct {
-	impl cache.Interface
+	impl cache.CacheInterface
 
 	ttl, tickerTTL, getKeysTTL, deleteExpiredKeysTTL time.Duration
-	skewPercent                                      int
+	skewPercent                                      int64
 
 	ticker     *time.Ticker
 	closedOnce sync.Once
@@ -43,7 +43,7 @@ type ttlCache struct {
 type InitOptions func(t *ttlCache)
 
 func WithOverrideDefaults(ttl, tickerTTL, getKeysTTL,
-	deleteExpiredKeysTTL time.Duration, skewPercent int) InitOptions {
+	deleteExpiredKeysTTL time.Duration, skewPercent int64) InitOptions {
 	return func(t *ttlCache) {
 		if ttl <= 0 {
 			ttl = defaultTTL
@@ -68,7 +68,7 @@ func WithOverrideDefaults(ttl, tickerTTL, getKeysTTL,
 	}
 }
 
-func NewTtlCache(impl cache.Interface, opts ...InitOptions) (cache.Interface, error) {
+func NewTtlCache(impl cache.CacheInterface, opts ...InitOptions) (cache.CacheInterface, error) {
 	const wrap = "NewTtlCache"
 	err := cache.WithValueValidation(impl, wrap)()
 	if err != nil {
@@ -172,7 +172,7 @@ func (t *ttlCache) GetKeys(ctx context.Context) ([]string, error) {
 	return t.impl.GetKeys(ctx)
 }
 
-func (t *ttlCache) GetLength() (int, error) {
+func (t *ttlCache) GetLength() (int64, error) {
 	const wrap = "ttlCache/GetKeys"
 	if err := cache.ValidateInput(
 		cache.WithClosedValidation(&t.closed, wrap),
@@ -244,12 +244,12 @@ func getTime() time.Time {
 	return time.Now()
 }
 
-func getRandomSkew(expiresAt time.Time, skewPercent int) time.Time {
+func getRandomSkew(expiresAt time.Time, skewPercent int64) time.Time {
 	// to be thread-safe
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 
 	ttl := time.Until(expiresAt)
-	skewRange := ttl.Nanoseconds() * int64(skewPercent) / 100
+	skewRange := ttl.Nanoseconds() * skewPercent / 100
 	skew := rnd.Int63n(2*skewRange+1) - skewRange
 
 	return expiresAt.Add(time.Duration(skew))

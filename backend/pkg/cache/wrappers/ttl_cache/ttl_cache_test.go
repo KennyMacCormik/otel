@@ -1,4 +1,4 @@
-package ttlCache
+package ttl_cache
 
 import (
 	"context"
@@ -18,18 +18,18 @@ import (
 
 // TODO: add test that TTL works as expected
 
-func getTtlCacheMock(t *testing.T, opts ...InitOptions) (*mockCache.MockInterface, cache.Interface) {
-	c := mockCache.NewMockInterface(t)
+func getTtlCacheMock(t *testing.T, opts ...InitOptions) (*mockCache.MockCacheInterface, cache.CacheInterface) {
+	c := mockCache.NewMockCacheInterface(t)
 
 	ttl, err := NewTtlCache(c, opts...)
 	require.NoError(t, err, "expect no error with default configuration")
 	require.NotNil(t, ttl, "expect result not nil with default configuration")
-	require.Implements(t, (*cache.Interface)(nil), ttl, "result should implement cache.Interface")
+	require.Implements(t, (*cache.CacheInterface)(nil), ttl, "result should implement cache.Interface")
 
 	return c, ttl
 }
 
-func typeAssertion(t *testing.T, c cache.Interface) *ttlCache {
+func typeAssertion(t *testing.T, c cache.CacheInterface) *ttlCache {
 	cacheImpl, ok := c.(*ttlCache)
 	require.True(t, ok, "expect result to be of type *ttlCache")
 	require.NotNil(t, cacheImpl, "expect result to be not nil")
@@ -37,13 +37,13 @@ func typeAssertion(t *testing.T, c cache.Interface) *ttlCache {
 }
 
 func TestTtlCache_New(t *testing.T) {
-	c := mockCache.NewMockInterface(t)
+	c := mockCache.NewMockCacheInterface(t)
 
 	t.Run("default", func(t *testing.T) {
 		ttl, err := NewTtlCache(c)
 		require.NoError(t, err, "expect no error with default configuration")
 		assert.NotNil(t, ttl, "expect result not nil with default configuration")
-		assert.Implements(t, (*cache.Interface)(nil), ttl, "result should implement cache.Interface")
+		assert.Implements(t, (*cache.CacheInterface)(nil), ttl, "result should implement cache.Interface")
 
 		cacheImpl := typeAssertion(t, ttl)
 		assert.Equal(t, defaultTTL, cacheImpl.ttl, "expect defaultTTL")
@@ -55,13 +55,13 @@ func TestTtlCache_New(t *testing.T) {
 
 	t.Run("with override default", func(t *testing.T) {
 		testTTL := 1 * time.Hour
-		testSkew := 50
+		testSkew := int64(50)
 		ttl, err := NewTtlCache(c,
 			WithOverrideDefaults(testTTL, testTTL, testTTL, testTTL, testSkew),
 		)
 		require.NoError(t, err, "expect no error with default configuration")
 		assert.NotNil(t, ttl, "expect result not nil with default configuration")
-		assert.Implements(t, (*cache.Interface)(nil), ttl, "result should implement cache.Interface")
+		assert.Implements(t, (*cache.CacheInterface)(nil), ttl, "result should implement cache.Interface")
 
 		cacheImpl := typeAssertion(t, ttl)
 		assert.Equal(t, testTTL, cacheImpl.ttl, "expect testTTL")
@@ -73,13 +73,13 @@ func TestTtlCache_New(t *testing.T) {
 
 	t.Run("with incorrect override default", func(t *testing.T) {
 		testTTL := -1 * time.Hour
-		testSkew := -50
+		testSkew := int64(-50)
 		ttl, err := NewTtlCache(c,
 			WithOverrideDefaults(testTTL, testTTL, testTTL, testTTL, testSkew),
 		)
 		require.NoError(t, err, "expect no error with default configuration")
 		assert.NotNil(t, ttl, "expect result not nil with default configuration")
-		assert.Implements(t, (*cache.Interface)(nil), ttl, "result should implement cache.Interface")
+		assert.Implements(t, (*cache.CacheInterface)(nil), ttl, "result should implement cache.Interface")
 
 		cacheImpl := typeAssertion(t, ttl)
 		assert.Equal(t, defaultTTL, cacheImpl.ttl, "expect defaultTTL")
@@ -99,7 +99,7 @@ func TestTtlCache_New(t *testing.T) {
 
 func TestTtlCache_GetLength(t *testing.T) {
 	t.Run("positive", func(t *testing.T) {
-		const length = 1
+		const length int64 = 1
 		c, ttl := getTtlCacheMock(t)
 		c.EXPECT().GetLength().Return(length, nil)
 
@@ -114,7 +114,7 @@ func TestTtlCache_GetLength(t *testing.T) {
 
 		i, err := ttl.GetLength()
 		require.Error(t, err, "expect an error")
-		assert.Equal(t, i, 0, "expect returned value equal 0 in case of error")
+		assert.Equal(t, i, int64(0), "expect returned value equal 0 in case of error")
 		assert.ErrorIs(t, err, assert.AnError, "expect an error of type assert.AnError")
 	})
 
@@ -126,7 +126,7 @@ func TestTtlCache_GetLength(t *testing.T) {
 
 		i, err := ttl.GetLength()
 		require.Error(t, err, "expect an error")
-		assert.Equal(t, i, 0, "expect returned value equal 0 in case of error")
+		assert.Equal(t, i, int64(0), "expect returned value equal 0 in case of error")
 		assert.ErrorIs(t, err, cache.ErrCacheClosed, "expect error to be cache.ErrCacheClosed")
 	})
 }

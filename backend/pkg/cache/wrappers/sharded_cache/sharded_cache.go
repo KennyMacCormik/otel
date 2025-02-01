@@ -1,4 +1,4 @@
-package shardedCache
+package sharded_cache
 
 import (
 	"context"
@@ -12,13 +12,13 @@ import (
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
 
-const defaultShardNumber = 10
-const fallbackShard = 0
+const defaultShardNumber int64 = 10
+const fallbackShard int64 = 0
 
 type shardedCache struct {
-	shardNumber int
+	shardNumber int64
 
-	shards []cache.Interface
+	shards []cache.CacheInterface
 	mtx    sync.RWMutex
 
 	closer     func(ctx context.Context) error
@@ -28,7 +28,7 @@ type shardedCache struct {
 
 type InitOptions func(t *shardedCache)
 
-func WithOverrideDefaults(shardNumber int) InitOptions {
+func WithOverrideDefaults(shardNumber int64) InitOptions {
 	return func(s *shardedCache) {
 		if shardNumber < 1 {
 			shardNumber = defaultShardNumber
@@ -37,7 +37,7 @@ func WithOverrideDefaults(shardNumber int) InitOptions {
 	}
 }
 
-func NewShardedCache(initFn func() cache.Interface, opts ...InitOptions) (cache.Interface, error) {
+func NewShardedCache(initFn func() cache.CacheInterface, opts ...InitOptions) (cache.CacheInterface, error) {
 	const wrap = "NewShardedCache"
 	err := cache.WithValueValidation(initFn, wrap)()
 	if err != nil {
@@ -50,9 +50,9 @@ func NewShardedCache(initFn func() cache.Interface, opts ...InitOptions) (cache.
 		opt(s)
 	}
 
-	s.shards = make([]cache.Interface, 0, s.shardNumber)
+	s.shards = make([]cache.CacheInterface, 0, s.shardNumber)
 
-	for i := 0; i < s.shardNumber; i++ {
+	for i := int64(0); i < s.shardNumber; i++ {
 		shard := initFn()
 		s.shards = append(s.shards, shard)
 		s.closer = wrapCloser(s.closer, shard.Close)
@@ -140,7 +140,7 @@ func (s *shardedCache) Close(ctx context.Context) error {
 	return err
 }
 
-func (s *shardedCache) GetLength() (int, error) {
+func (s *shardedCache) GetLength() (int64, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 
@@ -154,9 +154,9 @@ func (s *shardedCache) GetLength() (int, error) {
 	return s.getShardedCacheLen()
 }
 
-func (s *shardedCache) getShardedCacheLen() (int, error) {
+func (s *shardedCache) getShardedCacheLen() (int64, error) {
 	const wrap = "ttlCache/getShardedCacheLen"
-	var i int
+	var i int64
 	for shardNum := range s.shards {
 		num, err := s.shards[shardNum].GetLength()
 		if err != nil {
@@ -210,7 +210,7 @@ func (s *shardedCache) loopShards(ctx context.Context, resultCh chan []string, e
 		wg.Add(1)
 		go func(shardIdx int) {
 			defer wg.Done()
-			keys, err := s.getKeys(ctx, shardIdx)
+			keys, err := s.getKeys(ctx, int64(shardIdx))
 			if err != nil {
 				errCh <- err
 				return
@@ -222,7 +222,7 @@ func (s *shardedCache) loopShards(ctx context.Context, resultCh chan []string, e
 	wg.Wait()
 }
 
-func (s *shardedCache) getKeys(ctx context.Context, shard int) ([]string, error) {
+func (s *shardedCache) getKeys(ctx context.Context, shard int64) ([]string, error) {
 	const wrap = "ttlCache/getKeys"
 
 	result, err := s.shards[shard].GetKeys(ctx)
@@ -233,7 +233,7 @@ func (s *shardedCache) getKeys(ctx context.Context, shard int) ([]string, error)
 	return result, nil
 }
 
-func getShardNumber(key string, shardNumber int) int {
+func getShardNumber(key string, shardNumber int64) int64 {
 	if key == "" {
 		return fallbackShard
 	}
@@ -242,5 +242,5 @@ func getShardNumber(key string, shardNumber int) int {
 	if err != nil {
 		return fallbackShard
 	}
-	return int(hasher.Sum64() % uint64(shardNumber))
+	return int64(hasher.Sum64() % uint64(shardNumber))
 }

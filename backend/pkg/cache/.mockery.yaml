@@ -1,0 +1,10 @@
+resolve-type-alias: False # https://vektra.github.io/mockery/v2.51/deprecations/#resolve-type-alias
+issue-845-fix: True # https://vektra.github.io/mockery/v2.51/deprecations/#issue-845-fix
+with-expecter: true
+inpackage: false
+packages:
+  github.com/KennyMacCormik/otel/backend/pkg/cache:
+    interfaces:
+      CacheInterface:
+        config:
+          dir: "pkg/cache/mocks"
