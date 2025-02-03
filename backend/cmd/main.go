@@ -13,21 +13,31 @@ import (
 
 	initApp "github.com/KennyMacCormik/otel/backend/internal/init"
 	"github.com/KennyMacCormik/otel/backend/internal/storage"
+	"github.com/KennyMacCormik/otel/backend/pkg/otel"
+)
+
+const (
+	otelServiceName = "backend"
+	errExit         = 1
 )
 
 func main() {
 	conf := initApp.GetConfig()
 	if conf == nil {
 		log.Error("failed to initialize config")
-		gracefulStop()
+		os.Exit(errExit)
 	}
 
-	log.Configure(log.WithLogLevel(conf.Log.Level))
+	if conf.Log.Format == "json" {
+		log.Configure(log.WithLogLevel(conf.Log.Level), log.WithJSONFormat())
+	} else {
+		log.Configure(log.WithLogLevel(conf.Log.Level), log.WithTextFormat())
+	}
 
 	log.Info("config initialized")
 	log.Debug(fmt.Sprintf("%+v", conf))
 
-	tp, err := initApp.OTelInit(context.Background(), conf)
+	tp, err := otel.OTelInit(context.Background(), conf.OTel.Endpoint, otelServiceName)
 	if err != nil {
 		log.Error("failed to initialize OTel", "error", err)
 		gracefulStop()

@@ -1,4 +1,4 @@
-package init
+package otel
 
 import (
 	"context"
@@ -16,8 +16,6 @@ import (
 	"go.opentelemetry.io/otel/sdk/trace"
 	semconv "go.opentelemetry.io/otel/semconv/v1.27.0"
 )
-
-const otelServiceName = "backend"
 
 // CustomWriter redirects log output to slog. Created only to intercept otel error messages
 type CustomWriter struct {
@@ -38,17 +36,17 @@ func (cw *CustomWriter) Write(p []byte) (n int, err error) {
 	return len(p), nil
 }
 
-func OTelInit(ctx context.Context, conf *Config) (*trace.TracerProvider, error) {
+func OTelInit(ctx context.Context, endpoint, serviceName string) (*trace.TracerProvider, error) {
 	NewCustomWriter(customLogger.CopyLogger()).RedirectLoggerToSlog()
 
-	exporter, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpointURL(conf.OTel.Endpoint))
+	exporter, err := otlptracehttp.New(ctx, otlptracehttp.WithEndpointURL(endpoint))
 	if err != nil {
 		return nil, fmt.Errorf("init otel: %w", err)
 	}
 
 	res, err := resource.New(ctx,
 		resource.WithAttributes(
-			semconv.ServiceNameKey.String(otelServiceName),
+			semconv.ServiceNameKey.String(serviceName),
 		),
 	)
 	if err != nil {

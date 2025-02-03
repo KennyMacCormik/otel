@@ -1,44 +1,58 @@
 package main
 
 import (
-	"api/internal/cache"
-	"api/internal/client"
-	"api/internal/compute"
-	myinit "api/internal/init"
 	"context"
-	"github.com/KennyMacCormik/HerdMaster/pkg/log"
-	"github.com/KennyMacCormik/HerdMaster/pkg/val"
+	"fmt"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/KennyMacCormik/common/log"
+	"github.com/KennyMacCormik/otel/backend/pkg/otel"
+
+	initApp "github.com/KennyMacCormik/otel/api/internal/init"
+
+	"github.com/KennyMacCormik/otel/api/internal/cache"
+	"github.com/KennyMacCormik/otel/api/internal/client"
+	"github.com/KennyMacCormik/otel/api/internal/compute"
 )
 
-const errExit = 1
+const (
+	otelServiceName = "backend"
+	errExit         = 1
+)
 
 func main() {
-	// init default logger, errors ignored as per documentation
-	lg, _ := log.GetLogger()
-	// init validator
-	v := val.GetValidator()
-	// init conf
-	conf, err := myinit.InitConfig(v)
-	if err != nil {
-		lg.Error("failed to initialize config", "error", err)
+	conf := initApp.GetConfig()
+	if conf == nil {
+		log.Error("failed to initialize config")
 		os.Exit(errExit)
 	}
-	// reconfigure logger according to loaded conf
-	lg, err = log.ConfigureLogger(log.WithConfig(conf.Log.Level, conf.Log.Format))
-	if err != nil {
-		lg.Warn("failed to configure logger", "error", err)
+
+	if conf.Log.Format == "json" {
+		log.Configure(log.WithLogLevel(conf.Log.Level), log.WithJSONFormat())
+	} else {
+		log.Configure(log.WithLogLevel(conf.Log.Level), log.WithTextFormat())
 	}
-	lg.Debug("initialized config", "config", conf)
-	// init trace
-	stopTrace, err := myinit.InitOtel(context.Background(), conf, lg)
+
+	log.Info("config initialized")
+	log.Debug(fmt.Sprintf("%+v", conf))
+
+	tp, err := otel.OTelInit(context.Background(), conf.OTel.Endpoint, otelServiceName)
 	if err != nil {
-		lg.Error("failed to initialize otel", "error", err)
-		os.Exit(errExit)
+		log.Error("failed to initialize OTel", "error", err)
+		gracefulStop()
 	}
-	defer func() { _ = stopTrace() }()
+	log.Info("OTel initialized")
+	defer func() {
+		ctxStop, cancel := context.WithTimeout(context.Background(), conf.OTel.ShutdownTimeout)
+		defer cancel()
+		err = tp.Shutdown(ctxStop)
+		if err != nil {
+			log.Warn("failed to shutdown OTel", "error", err)
+		}
+	}()
+
 	// init cache
 	c, err := cache.NewCache(lg)
 	if err != nil {
@@ -66,4 +80,8 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	defer signal.Stop(quit)
 	<-quit
+}
+
+func gracefulStop() {
+	_ = syscall.Kill(os.Getpid(), syscall.SIGTERM)
 }
