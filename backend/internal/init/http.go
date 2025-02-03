@@ -4,12 +4,12 @@ import (
 	"github.com/KennyMacCormik/common/gin_factory"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
+	storageHandlers "github.com/KennyMacCormik/otel/backend/internal/http/handlers/storage"
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 	httpWithGin "github.com/KennyMacCormik/otel/backend/pkg/gin"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_get_trace_parent"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_rate_limiter"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
-	storageHandlers "github.com/KennyMacCormik/otel/backend/pkg/http/handlers/storage"
 )
 
 const otelGinMiddlewareName = "api"

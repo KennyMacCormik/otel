@@ -3,6 +3,8 @@ package init
 import (
 	"time"
 
+	"github.com/KennyMacCormik/common/log"
+
 	"github.com/KennyMacCormik/otel/backend/pkg/conf/gin_conf"
 	"github.com/KennyMacCormik/otel/backend/pkg/conf/http_conf"
 	"github.com/KennyMacCormik/otel/backend/pkg/conf/logger_conf"
@@ -80,6 +82,12 @@ func (c *Config) getLoggingConfig() bool {
 
 	c.Log.Format = i.Format()
 	c.Log.Level = i.Level()
+
+	if c.Log.Format == "json" {
+		log.Configure(log.WithLogLevel(c.Log.Level), log.WithJSONFormat())
+	} else {
+		log.Configure(log.WithLogLevel(c.Log.Level), log.WithTextFormat())
+	}
 
 	return true
 }

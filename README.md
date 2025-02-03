@@ -190,6 +190,8 @@ curl --location 'http://localhost:8081/storage/te%24tKey' \
   - Fix RateLimiter metrics
 - Remove traces from middleware (api, ~~backend~~)
 - Add error marks to span
+- Add live and ready probes
+- Add resource limits
 
 ---
 
