@@ -8,7 +8,6 @@ import (
 
 	"github.com/KennyMacCormik/common/conv"
 	customLogger "github.com/KennyMacCormik/common/log"
-
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"

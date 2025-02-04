@@ -15,8 +15,11 @@ import (
 	"github.com/KennyMacCormik/HerdMaster/pkg/cache"
 	"github.com/KennyMacCormik/HerdMaster/pkg/conv"
 	"github.com/KennyMacCormik/HerdMaster/pkg/gin/middleware"
+	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
+	otelCustomFuncs "github.com/KennyMacCormik/otel/backend/pkg/otel"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
 )
@@ -33,24 +36,6 @@ type client struct {
 	backend string
 }
 
-// Config represents the configuration for the backend HTTP client used in the application.
-// It provides essential settings to configure the backend endpoint and request timeout.
-//
-// Fields:
-//   - BackendEndpoint: Specifies the URL of the backend endpoint (e.g., REST API endpoint).
-//     Validates as a valid URL and is a required field.
-//   - BackendRequestTimeout: Specifies the maximum duration to wait for a backend request to complete.
-//     Validates as a duration between 100 ms and 30 s (inclusive).
-//
-// Usage:
-// This struct is designed to integrate seamlessly with the `cfg` and `val` packages for centralized
-// configuration management and validation. It ensures the backend client is properly configured
-// for reliable communication with the backend services.
-type Config struct {
-	BackendEndpoint       string        `mapstructure:"backend_endpoint" validate:"url,required"`
-	BackendRequestTimeout time.Duration `mapstructure:"backend_request_timeout" validate:"min=100ms,max=30s"`
-}
-
 func NewBackendClient(backend string, timeout time.Duration) BackendClientInterface {
 	return &client{
 		backend: backend,
@@ -61,28 +46,26 @@ func NewBackendClient(backend string, timeout time.Duration) BackendClientInterf
 
 func (c *client) Get(ctx context.Context, key, requestId string) (any, error) {
 	const (
-		traceName = "api.client.get"
-		spanName  = "client.get"
+		spanName = "client.get"
 	)
-	// prep trace
-	tracer := otel.Tracer(traceName)
-	ctx, span := tracer.Start(ctx, spanName)
+
+	ctx, span := otelCustomFuncs.StartSpanWithCtx(ctx, spanName, spanName)
 	defer span.End()
 
 	r, err := c.prepareWithUrlPath(ctx, http.MethodGet, key)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".prepare", err)
-		span.AddEvent("prepare request error", trace.WithAttributes(attribute.String("error", err.Error())))
+		otelCustomFuncs.SetSpanErr(span, err)
 		return nil, err
 	}
 
-	r.Header.Set(middleware.RequestIDKey, requestId)
+	r.Header.Set(gin_request_id.RequestIDKey, requestId)
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(r.Header))
 
 	b, err := c.invoke(r)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".invoke", err)
-		span.AddEvent("invoke request error", trace.WithAttributes(attribute.String("error", err.Error())))
+		otelCustomFuncs.SetSpanErr(span, err)
 		return nil, err
 	}
 	return nil, validateResponse(b)
@@ -201,4 +184,16 @@ func validateResponse(b []byte) error {
 		return cache.ErrNotFound
 	}
 	return nil
+}
+
+func startSpanWithCtx(ctx context.Context, traceName, spanName string) (context.Context, trace.Span) {
+	tracer := otel.Tracer(traceName)
+	newCtx, span := tracer.Start(ctx, spanName)
+	return newCtx, span
+}
+
+func setSpanErr(span trace.Span, err error) {
+	span.SetStatus(codes.Error, err.Error())
+	span.RecordError(err)
+	span.SetAttributes(attribute.String("error.message", err.Error()))
 }

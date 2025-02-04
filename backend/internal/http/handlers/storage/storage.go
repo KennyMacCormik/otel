@@ -10,15 +10,14 @@ import (
 
 	"github.com/KennyMacCormik/common/log"
 	"github.com/gin-gonic/gin"
-	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/codes"
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
 	cacheErrors "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
 	httpModels "github.com/KennyMacCormik/otel/backend/pkg/models/http"
+	otelHelpers "github.com/KennyMacCormik/otel/backend/pkg/otel/helpers"
 )
 
 type StorageHandler struct {
@@ -49,7 +48,7 @@ func (s *StorageHandler) ginGet() func(c *gin.Context) {
 
 		key, err := getKey(c)
 		if err != nil {
-			setSpanErr(span, err)
+			otelHelpers.SetSpanErr(span, err)
 			lg.Error("malformed request", "error", err.Error())
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -62,7 +61,7 @@ func (s *StorageHandler) ginGet() func(c *gin.Context) {
 				c.Status(http.StatusNotFound)
 				return
 			}
-			setSpanErr(span, err)
+			otelHelpers.SetSpanErr(span, err)
 			lg.Error("failed to get value", "key", key, "error", err.Error())
 			c.Status(http.StatusInternalServerError)
 			return
@@ -89,7 +88,7 @@ func (s *StorageHandler) ginSet() func(c *gin.Context) {
 
 		err := c.ShouldBindJSON(&b)
 		if err != nil {
-			setSpanErr(span, err)
+			otelHelpers.SetSpanErr(span, err)
 			lg.Error("failed read request body", "error", err.Error())
 			c.Status(http.StatusBadRequest)
 			return
@@ -100,7 +99,7 @@ func (s *StorageHandler) ginSet() func(c *gin.Context) {
 
 		code, err := s.st.Set(c.Request.Context(), b.Key, b.Val)
 		if err != nil {
-			setSpanErr(span, err)
+			otelHelpers.SetSpanErr(span, err)
 			lg.Error("failed to set value", "key", b.Key, "value", b.Val, "error", err.Error())
 			c.Status(http.StatusInternalServerError)
 			return
@@ -122,7 +121,7 @@ func (s *StorageHandler) ginDel() func(c *gin.Context) {
 
 		key, err := getKey(c)
 		if err != nil {
-			setSpanErr(span, err)
+			otelHelpers.SetSpanErr(span, err)
 			lg.Error("malformed request", "error", err.Error())
 			c.Status(http.StatusBadRequest)
 			return
@@ -130,7 +129,7 @@ func (s *StorageHandler) ginDel() func(c *gin.Context) {
 
 		err = s.st.Delete(c.Request.Context(), key)
 		if err != nil {
-			setSpanErr(span, err)
+			otelHelpers.SetSpanErr(span, err)
 			lg.Error("failed to delete value", "key", key, "error", err.Error())
 			c.Status(http.StatusInternalServerError)
 			return
@@ -138,12 +137,6 @@ func (s *StorageHandler) ginDel() func(c *gin.Context) {
 
 		c.Status(http.StatusNoContent)
 	}
-}
-
-func setSpanErr(span trace.Span, err error) {
-	span.SetStatus(codes.Error, err.Error())
-	span.RecordError(err)
-	span.SetAttributes(attribute.String("error.message", err.Error()))
 }
 
 func getKey(c *gin.Context) (string, error) {
@@ -180,7 +173,7 @@ func isUrlEncoded(rawKey, ginDecodedKey string) bool {
 func getLogAndSpan(c *gin.Context, spanName string) (*slog.Logger, trace.Span) {
 	var lg *slog.Logger
 
-	span := startSpan(c, spanName, spanName)
+	span := otelHelpers.StartSpanWithGinCtx(c, spanName, spanName)
 
 	defer func() {
 		lg.Debug("request received",
@@ -207,11 +200,4 @@ func getLogAndSpan(c *gin.Context, spanName string) (*slog.Logger, trace.Span) {
 	lg = log.CopyLogger().With("request_id", reqId, "Method", c.Request.Method, "UrlPath", c.Request.URL.Path)
 
 	return lg, span
-}
-
-func startSpan(c *gin.Context, traceName, spanName string) trace.Span {
-	tracer := otel.Tracer(traceName)
-	ctx, span := tracer.Start(c.Request.Context(), spanName)
-	c.Request = c.Request.WithContext(ctx)
-	return span
 }
