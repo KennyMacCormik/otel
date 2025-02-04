@@ -6,6 +6,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"strings"
+	"time"
+
 	"github.com/KennyMacCormik/HerdMaster/pkg/cache"
 	"github.com/KennyMacCormik/HerdMaster/pkg/conv"
 	"github.com/KennyMacCormik/HerdMaster/pkg/gin/middleware"
@@ -13,14 +19,9 @@ import (
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/trace"
-	"io"
-	"net/http"
-	"net/url"
-	"strings"
-	"time"
 )
 
-type Interface interface {
+type BackendClientInterface interface {
 	Get(ctx context.Context, key, requestId string) (any, error)
 	Set(ctx context.Context, key string, value any, requestId string) error
 	Delete(ctx context.Context, key, requestId string) error
@@ -50,55 +51,12 @@ type Config struct {
 	BackendRequestTimeout time.Duration `mapstructure:"backend_request_timeout" validate:"min=100ms,max=30s"`
 }
 
-func NewClient(backend string, timeout time.Duration) Interface {
+func NewBackendClient(backend string, timeout time.Duration) BackendClientInterface {
 	return &client{
 		backend: backend,
 		timeout: timeout,
 		client:  &http.Client{Timeout: timeout},
 	}
-}
-
-func (c *client) prepareWithBody(ctx context.Context, method, key string, val any) (*http.Request, error) {
-	body := map[string]any{"key": key, "value": val}
-	jsonBody, err := json.Marshal(body)
-	if err != nil {
-		return nil, err
-	}
-	reader := bytes.NewReader(jsonBody)
-
-	return http.NewRequestWithContext(ctx, method, c.backend, reader)
-}
-
-func (c *client) prepareWithUrlPath(ctx context.Context, method, key string) (*http.Request, error) {
-	encodedKey := url.PathEscape(key)
-	path, err := url.JoinPath(c.backend, encodedKey)
-	if err != nil {
-		return nil, err
-	}
-
-	return http.NewRequestWithContext(ctx, method, path, nil)
-}
-
-func (c *client) invoke(r *http.Request) ([]byte, error) {
-	resp, err := c.client.Do(r)
-	if err != nil {
-		return nil, err
-	}
-	defer func() { _ = resp.Body.Close() }()
-
-	if resp.StatusCode == http.StatusNotFound {
-		return nil, cache.ErrNotFound
-	}
-	if resp.StatusCode == http.StatusInternalServerError {
-		return nil, errors.New("internal server error")
-	}
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, err
-	}
-
-	return body, nil
 }
 
 func (c *client) Get(ctx context.Context, key, requestId string) (any, error) {
@@ -128,20 +86,6 @@ func (c *client) Get(ctx context.Context, key, requestId string) (any, error) {
 		return nil, err
 	}
 	return nil, validateResponse(b)
-}
-
-func validateResponse(b []byte) error {
-	str := conv.BytesToStr(b)
-	if strings.Contains(str, "malformed request") {
-		return errors.New("malformed request")
-	}
-	if strings.Contains(str, "internal server error") {
-		return errors.New("internal server error")
-	}
-	if strings.Contains(str, "not found") {
-		return cache.ErrNotFound
-	}
-	return nil
 }
 
 func (c *client) Set(ctx context.Context, key string, value any, requestId string) error {
@@ -198,6 +142,63 @@ func (c *client) Delete(ctx context.Context, key string, requestId string) error
 		err = fmt.Errorf("%s: %w", spanName+".invoke", err)
 		span.AddEvent("invoke request error", trace.WithAttributes(attribute.String("error", err.Error())))
 		return err
+	}
+	return nil
+}
+
+func (c *client) prepareWithBody(ctx context.Context, method, key string, val any) (*http.Request, error) {
+	body := map[string]any{"key": key, "value": val}
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+	reader := bytes.NewReader(jsonBody)
+
+	return http.NewRequestWithContext(ctx, method, c.backend, reader)
+}
+
+func (c *client) prepareWithUrlPath(ctx context.Context, method, key string) (*http.Request, error) {
+	encodedKey := url.PathEscape(key)
+	path, err := url.JoinPath(c.backend, encodedKey)
+	if err != nil {
+		return nil, err
+	}
+
+	return http.NewRequestWithContext(ctx, method, path, nil)
+}
+
+func (c *client) invoke(r *http.Request) ([]byte, error) {
+	resp, err := c.client.Do(r)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = resp.Body.Close() }()
+
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, cache.ErrNotFound
+	}
+	if resp.StatusCode == http.StatusInternalServerError {
+		return nil, errors.New("internal server error")
+	}
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	return body, nil
+}
+
+func validateResponse(b []byte) error {
+	str := conv.BytesToStr(b)
+	if strings.Contains(str, "malformed request") {
+		return errors.New("malformed request")
+	}
+	if strings.Contains(str, "internal server error") {
+		return errors.New("internal server error")
+	}
+	if strings.Contains(str, "not found") {
+		return cache.ErrNotFound
 	}
 	return nil
 }

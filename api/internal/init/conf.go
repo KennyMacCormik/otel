@@ -8,6 +8,8 @@ import (
 	"github.com/KennyMacCormik/otel/backend/pkg/conf/logger_conf"
 	"github.com/KennyMacCormik/otel/backend/pkg/conf/otel_config"
 	"github.com/KennyMacCormik/otel/backend/pkg/conf/rate_limiter_conf"
+
+	"github.com/KennyMacCormik/otel/api/internal/conf/backend_client"
 )
 
 type Config struct {
@@ -16,7 +18,11 @@ type Config struct {
 	RateLimiter RateLimiter
 	Http        Http
 	Gin         Gin
-	// TODO: add Client
+	Client      Client
+}
+type Client struct {
+	Endpoint       string
+	RequestTimeout time.Duration
 }
 type Gin struct {
 	Mode string
@@ -51,6 +57,7 @@ func GetConfig() *Config {
 		cfg.getOTelConfig,
 		cfg.getRateLimiterConfig,
 		cfg.getGinConfig,
+		cfg.getBackendClientConfig,
 	}
 
 	for _, fn := range fns {
@@ -121,6 +128,18 @@ func (c *Config) getRateLimiterConfig() bool {
 	c.RateLimiter.RetryAfter = i.RetryAfter()
 	c.RateLimiter.MaxRunning = i.MaxRunning()
 	c.RateLimiter.MaxWait = i.MaxWaiting()
+
+	return true
+}
+
+func (c *Config) getBackendClientConfig() bool {
+	i := backend_client.NewBackendClientConf()
+	if i == nil {
+		return false
+	}
+
+	c.Client.Endpoint = i.Endpoint()
+	c.Client.RequestTimeout = i.RequestTimeout()
 
 	return true
 }

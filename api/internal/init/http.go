@@ -1,57 +1,43 @@
 package init
 
 import (
-	"api/internal/compute"
-	"api/internal/http/handlers"
-	"errors"
-	myhttp "github.com/KennyMacCormik/HerdMaster/pkg/gin"
-	"github.com/KennyMacCormik/HerdMaster/pkg/gin/middleware"
-	"github.com/KennyMacCormik/HerdMaster/pkg/gin/router"
+	"github.com/KennyMacCormik/common/gin_factory"
+	httpWithGin "github.com/KennyMacCormik/otel/backend/pkg/gin"
+	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_rate_limiter"
+	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
-	"log/slog"
-	"net/http"
-	"os"
-	"strconv"
+
+	storageHandlers "github.com/KennyMacCormik/otel/api/internal/http/handlers/storage"
+
+	"github.com/KennyMacCormik/otel/api/internal/service"
 )
 
 const otelGinMiddlewareName = "api"
 
-func InitServer(conf *Config, errExit int, comp compute.Interface, lg *slog.Logger) (closer func()) {
-	svr := myhttp.NewHttpServer(
-		conf.Http.Host+":"+strconv.Itoa(conf.Http.Port),
-		initRouter(conf, comp, lg),
+func InitServer(conf *Config, svc service.ServiceInterface) *httpWithGin.GinServer {
+	return httpWithGin.NewHttpServer(
+		conf.Http.Endpoint,
+		initRouter(conf, svc),
 		conf.Http.ReadTimeout,
 		conf.Http.ReadTimeout,
 		conf.Http.ReadTimeout,
 	)
-	go func() {
-		lg.Info("Starting http server")
-		err := svr.Start()
-		if err != nil {
-			if !errors.Is(err, http.ErrServerClosed) {
-				lg.Error("Failed to start server", "error", err)
-				os.Exit(errExit)
-			}
-		}
-	}()
-	return func() {
-		err := svr.Close(conf.Http.ShutdownTimeout)
-		if err != nil {
-			lg.Error("Failed to gracefully stop server", "error", err)
-			return
-		}
-		lg.Info("Server gracefully stopped")
-	}
 }
 
-func initRouter(conf *Config, comp compute.Interface, lg *slog.Logger) *router.GinFactory {
-	ginFactory := router.NewGinFactory()
+func initRouter(conf *Config, svc service.ServiceInterface) *gin_factory.GinFactory {
+	ginFactory := gin_factory.NewGinFactory()
+
 	ginFactory.AddMiddleware(
 		otelgin.Middleware(otelGinMiddlewareName),
-		middleware.RequestIDMiddleware(),
-		middleware.NewRateLimiter(conf.RateLimiter.MaxRunning,
-			conf.RateLimiter.MaxWait, conf.RateLimiter.RetryAfter, lg).GetRateLimiter(),
+		gin_request_id.RequestIDMiddleware(),
+		gin_rate_limiter.NewRateLimiter(
+			conf.RateLimiter.MaxRunning,
+			conf.RateLimiter.MaxWait,
+			conf.RateLimiter.RetryAfter,
+		).GetRateLimiter(),
 	)
-	ginFactory.AddHandlers(handlers.NewStorageHandlers(comp, lg))
+
+	ginFactory.AddHandlers(storageHandlers.NewStorageHandler(svc).GetGinStorageHandler())
+
 	return ginFactory
 }

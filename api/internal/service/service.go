@@ -1,34 +1,35 @@
-package compute
+package service
 
 import (
-	"api/internal/client"
 	"context"
 	"errors"
 	"fmt"
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache"
+
+	"github.com/KennyMacCormik/otel/backend/pkg/cache"
+	cacheErrors "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/trace"
-	"log/slog"
+
+	"github.com/KennyMacCormik/otel/api/internal/client"
 )
 
-type Interface interface {
+type ServiceInterface interface {
 	Get(ctx context.Context, key, requestId string) (any, error)
-	Set(ctx context.Context, key string, value any, requestId string) error
+	Set(ctx context.Context, key string, value any, requestId string) (int, error)
 	Delete(ctx context.Context, key, requestId string) error
 }
 
-type layer struct {
-	lg     *slog.Logger
-	cache  cache.Interface
-	client client.Interface
+type serviceLayer struct {
+	cache  cache.CacheInterface
+	client client.BackendClientInterface
 }
 
-func NewComputeLayer(cache cache.Interface, client client.Interface, lg *slog.Logger) Interface {
-	return &layer{cache: cache, lg: lg, client: client}
+func NewServiceLayer(cache cache.CacheInterface, client client.BackendClientInterface) ServiceInterface {
+	return &serviceLayer{cache: cache, client: client}
 }
 
-func (l *layer) Get(ctx context.Context, key, requestId string) (any, error) {
+func (l *serviceLayer) Get(ctx context.Context, key, requestId string) (any, error) {
 	const (
 		traceName = "api.compute.get"
 		spanName  = "compute.get"
@@ -39,7 +40,7 @@ func (l *layer) Get(ctx context.Context, key, requestId string) (any, error) {
 
 	val, err := l.cache.Get(ctx, key)
 	if err != nil {
-		if errors.Is(err, cache.ErrNotFound) {
+		if errors.Is(err, cacheErrors.ErrNotFound) {
 			span.AddEvent("cache miss")
 			return l.client.Get(ctx, key, requestId)
 		} else {
@@ -50,7 +51,7 @@ func (l *layer) Get(ctx context.Context, key, requestId string) (any, error) {
 	return val, nil
 }
 
-func (l *layer) Set(ctx context.Context, key string, value any, requestId string) error {
+func (l *serviceLayer) Set(ctx context.Context, key string, value any, requestId string) (int, error) {
 	const (
 		traceName = "api.compute.set"
 		spanName  = "compute.set"
@@ -59,15 +60,15 @@ func (l *layer) Set(ctx context.Context, key string, value any, requestId string
 	ctx, span := tracer.Start(ctx, spanName)
 	defer span.End()
 
-	if err := l.cache.Set(ctx, key, value); err != nil {
+	if code, err := l.cache.Set(ctx, key, value); err != nil {
 		span.AddEvent("could not update cache", trace.WithAttributes(attribute.String("error", err.Error())))
-		return fmt.Errorf("%s: could not update cache: %w", spanName, err)
+		return 0, fmt.Errorf("%s: could not update cache: %w", spanName, err)
 	}
 
 	return l.client.Set(ctx, key, value, requestId)
 }
 
-func (l *layer) Delete(ctx context.Context, key, requestId string) error {
+func (l *serviceLayer) Delete(ctx context.Context, key, requestId string) error {
 	const (
 		traceName = "api.compute.delete"
 		spanName  = "compute.delete"

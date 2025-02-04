@@ -1,19 +1,18 @@
 package cache
 
 import (
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache"
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache/impl/syncMap"
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache/wrappers/shardedCache"
-	"github.com/KennyMacCormik/HerdMaster/pkg/cache/wrappers/ttlCache"
-	"log/slog"
+	"github.com/KennyMacCormik/otel/backend/pkg/cache"
+	"github.com/KennyMacCormik/otel/backend/pkg/cache/impl/sync_map"
+	"github.com/KennyMacCormik/otel/backend/pkg/cache/wrappers/sharded_cache"
+	"github.com/KennyMacCormik/otel/backend/pkg/cache/wrappers/ttl_cache"
 )
 
-func NewCache(lg *slog.Logger) (cache.Interface, error) {
-	fn := func() cache.Interface {
-		c, _ := ttlCache.NewTtlCache(syncMap.NewSyncMapCache(), ttlCache.WithLogger(lg))
+func NewCache() (cache.CacheInterface, error) {
+	fn := func() cache.CacheInterface {
+		c, _ := ttl_cache.NewTtlCache(sync_map.NewSyncMapCache())
 		return c
 	}
-	c, err := shardedCache.NewShardedCache(fn)
+	c, err := sharded_cache.NewShardedCache(fn)
 	if err != nil {
 		return nil, err
 	}

@@ -12,7 +12,7 @@ import (
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
 )
 
-const otelGinMiddlewareName = "api"
+const otelGinMiddlewareName = "backend"
 
 func HttpServer(conf *Config, st cache.CacheInterface) *httpWithGin.GinServer {
 	return httpWithGin.NewHttpServer(

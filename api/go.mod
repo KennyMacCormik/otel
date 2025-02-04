@@ -3,18 +3,16 @@ module github.com/KennyMacCormik/otel/api
 go 1.23.4
 
 require (
-	github.com/KennyMacCormik/HerdMaster v0.7.7
 	github.com/KennyMacCormik/common/log v0.2.0
-	github.com/KennyMacCormik/otel/backend v0.5.3
+	github.com/KennyMacCormik/otel/backend v0.5.4
 	github.com/gin-gonic/gin v1.10.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.59.0
 	go.opentelemetry.io/otel v1.34.0
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.34.0
-	go.opentelemetry.io/otel/sdk v1.34.0
 	go.opentelemetry.io/otel/trace v1.34.0
 )
 
 require (
+	github.com/KennyMacCormik/common/conv v0.1.0 // indirect
 	github.com/KennyMacCormik/common/val v0.1.1 // indirect
 	github.com/bytedance/sonic v1.12.8 // indirect
 	github.com/bytedance/sonic/loader v0.2.3 // indirect
@@ -53,7 +51,9 @@ require (
 	github.com/ugorji/go/codec v1.2.12 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.34.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.34.0 // indirect
 	go.opentelemetry.io/otel/metric v1.34.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.34.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.5.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/arch v0.13.0 // indirect
