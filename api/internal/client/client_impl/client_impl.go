@@ -77,7 +77,7 @@ func (c *clientImpl) Set(ctx context.Context, key string, value any, requestId s
 	ctx, span := otelHelpers.StartSpanWithCtx(ctx, spanName, spanName)
 	defer span.End()
 
-	r, err := c.prepareWithBody(ctx, http.MethodPost, key, value)
+	r, err := c.prepareWithBody(ctx, http.MethodPut, key, value)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".prepare", err)
 		otelHelpers.SetSpanExceptionWithErr(span, err)
