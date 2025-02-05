@@ -8,7 +8,6 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 
 	storageHandlers "github.com/KennyMacCormik/otel/api/internal/http/handlers/storage"
-
 	"github.com/KennyMacCormik/otel/api/internal/service"
 )
 

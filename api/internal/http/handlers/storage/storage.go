@@ -112,7 +112,7 @@ func (s *StorageHandler) ginSet() func(c *gin.Context) {
 		lg.Info("request key", "key", b.Key)
 		lg.Debug("request value", "value", b.Val)
 
-		code, err := s.svc.Set(c.Request.Context(), b.Key, b.Val, reqId)
+		code, err := s.svc.Set(c.Request.Context(), b.Key, b.Val, reqId, lg)
 		if err != nil {
 			lg.Error("failed to set value", "key", b.Key, "value", b.Val, "error", err.Error())
 			c.Status(http.StatusInternalServerError)
@@ -148,7 +148,7 @@ func (s *StorageHandler) ginDel() func(c *gin.Context) {
 			return
 		}
 
-		err = s.svc.Delete(c.Request.Context(), key, reqId)
+		err = s.svc.Delete(c.Request.Context(), key, reqId, lg)
 		if err != nil {
 			lg.Error("failed to delete value", "key", key, "error", err.Error())
 			c.Status(http.StatusInternalServerError)

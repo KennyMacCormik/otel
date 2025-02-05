@@ -1,4 +1,4 @@
-package service
+package service_impl
 
 import (
 	"context"
@@ -9,26 +9,21 @@ import (
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 	cacheErrors "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
 	otelHelpers "github.com/KennyMacCormik/otel/backend/pkg/otel/helpers"
-	"go.opentelemetry.io/otel/attribute"
-	"go.opentelemetry.io/otel/trace"
 
 	"github.com/KennyMacCormik/otel/api/internal/client"
+	"github.com/KennyMacCormik/otel/api/internal/service"
 )
-
-type ServiceInterface interface {
-	Get(ctx context.Context, key, requestId string, lg *slog.Logger) (any, error)
-	Set(ctx context.Context, key string, value any, requestId string) (int, error)
-	Delete(ctx context.Context, key, requestId string) error
-}
 
 type serviceLayer struct {
 	cache  cache.CacheInterface
 	client client.BackendClientInterface
 }
 
-func NewServiceLayer(cache cache.CacheInterface, client client.BackendClientInterface) ServiceInterface {
+func NewServiceLayer(cache cache.CacheInterface, client client.BackendClientInterface) service.ServiceInterface {
 	return &serviceLayer{cache: cache, client: client}
 }
+
+// TODO: cache 404 result
 
 func (l *serviceLayer) Get(ctx context.Context, key, requestId string, lg *slog.Logger) (any, error) {
 	const (
@@ -47,7 +42,7 @@ func (l *serviceLayer) Get(ctx context.Context, key, requestId string, lg *slog.
 			return l.invokeClientAndStoreValue(ctx, key, requestId)
 		} else {
 			otelHelpers.SetSpanExceptionWithoutErr(span, err)
-			lg.Error("cache error", "error", err)
+			lg.Warn("cache error", "error", err)
 
 			return l.invokeClientAndStoreValue(ctx, key, requestId)
 		}
@@ -59,7 +54,9 @@ func (l *serviceLayer) Get(ctx context.Context, key, requestId string, lg *slog.
 	return val, nil
 }
 
-func (l *serviceLayer) Set(ctx context.Context, key string, value any, requestId string) (int, error) {
+// TODO: fix codes
+
+func (l *serviceLayer) Set(ctx context.Context, key string, value any, requestId string, lg *slog.Logger) (int, error) {
 	const (
 		spanName = "compute.set"
 	)
@@ -68,14 +65,14 @@ func (l *serviceLayer) Set(ctx context.Context, key string, value any, requestId
 	defer span.End()
 
 	if _, err := l.cache.Set(ctx, key, value); err != nil {
-		span.AddEvent("could not update cache", trace.WithAttributes(attribute.String("error", err.Error())))
-		return 0, fmt.Errorf("%s: could not update cache: %w", spanName, err)
+		otelHelpers.SetSpanExceptionWithoutErr(span, err)
+		lg.Error(fmt.Sprintf("%s: could not update cache", spanName), "error", err)
 	}
 
 	return 0, l.client.Set(ctx, key, value, requestId)
 }
 
-func (l *serviceLayer) Delete(ctx context.Context, key, requestId string) error {
+func (l *serviceLayer) Delete(ctx context.Context, key, requestId string, lg *slog.Logger) error {
 	const (
 		spanName = "compute.delete"
 	)
@@ -84,8 +81,8 @@ func (l *serviceLayer) Delete(ctx context.Context, key, requestId string) error 
 	defer span.End()
 
 	if err := l.cache.Delete(ctx, key); err != nil {
-		span.AddEvent("could not update cache", trace.WithAttributes(attribute.String("error", err.Error())))
-		return fmt.Errorf("%s: could not update cache: %w", spanName, err)
+		otelHelpers.SetSpanExceptionWithoutErr(span, err)
+		lg.Error(fmt.Sprintf("%s: could not update cache", spanName), "error", err)
 	}
 
 	return l.client.Delete(ctx, key, requestId)

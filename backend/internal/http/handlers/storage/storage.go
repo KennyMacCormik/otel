@@ -48,7 +48,7 @@ func (s *StorageHandler) ginGet() func(c *gin.Context) {
 
 		key, err := getKey(c)
 		if err != nil {
-			otelHelpers.SetSpanErr(span, err)
+			otelHelpers.SetSpanExceptionWithErr(span, err)
 			lg.Error("malformed request", "error", err.Error())
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
@@ -61,7 +61,7 @@ func (s *StorageHandler) ginGet() func(c *gin.Context) {
 				c.Status(http.StatusNotFound)
 				return
 			}
-			otelHelpers.SetSpanErr(span, err)
+			otelHelpers.SetSpanExceptionWithErr(span, err)
 			lg.Error("failed to get value", "key", key, "error", err.Error())
 			c.Status(http.StatusInternalServerError)
 			return
@@ -88,7 +88,7 @@ func (s *StorageHandler) ginSet() func(c *gin.Context) {
 
 		err := c.ShouldBindJSON(&b)
 		if err != nil {
-			otelHelpers.SetSpanErr(span, err)
+			otelHelpers.SetSpanExceptionWithErr(span, err)
 			lg.Error("failed read request body", "error", err.Error())
 			c.Status(http.StatusBadRequest)
 			return
@@ -99,7 +99,7 @@ func (s *StorageHandler) ginSet() func(c *gin.Context) {
 
 		code, err := s.st.Set(c.Request.Context(), b.Key, b.Val)
 		if err != nil {
-			otelHelpers.SetSpanErr(span, err)
+			otelHelpers.SetSpanExceptionWithErr(span, err)
 			lg.Error("failed to set value", "key", b.Key, "value", b.Val, "error", err.Error())
 			c.Status(http.StatusInternalServerError)
 			return
@@ -121,7 +121,7 @@ func (s *StorageHandler) ginDel() func(c *gin.Context) {
 
 		key, err := getKey(c)
 		if err != nil {
-			otelHelpers.SetSpanErr(span, err)
+			otelHelpers.SetSpanExceptionWithErr(span, err)
 			lg.Error("malformed request", "error", err.Error())
 			c.Status(http.StatusBadRequest)
 			return
@@ -129,7 +129,7 @@ func (s *StorageHandler) ginDel() func(c *gin.Context) {
 
 		err = s.st.Delete(c.Request.Context(), key)
 		if err != nil {
-			otelHelpers.SetSpanErr(span, err)
+			otelHelpers.SetSpanExceptionWithErr(span, err)
 			lg.Error("failed to delete value", "key", key, "error", err.Error())
 			c.Status(http.StatusInternalServerError)
 			return

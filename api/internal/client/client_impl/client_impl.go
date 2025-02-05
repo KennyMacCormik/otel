@@ -1,4 +1,4 @@
-package client
+package client_impl
 
 import (
 	"bytes"
@@ -18,29 +18,25 @@ import (
 	otelHelpers "github.com/KennyMacCormik/otel/backend/pkg/otel/helpers"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
+
+	"github.com/KennyMacCormik/otel/api/internal/client"
 )
 
-type BackendClientInterface interface {
-	Get(ctx context.Context, key, requestId string) (any, error)
-	Set(ctx context.Context, key string, value any, requestId string) error
-	Delete(ctx context.Context, key, requestId string) error
-}
-
-type client struct {
+type clientImpl struct {
 	client  *http.Client
 	timeout time.Duration
 	backend string
 }
 
-func NewBackendClient(backend string, timeout time.Duration) BackendClientInterface {
-	return &client{
+func NewBackendClient(backend string, timeout time.Duration) client.BackendClientInterface {
+	return &clientImpl{
 		backend: backend,
 		timeout: timeout,
 		client:  &http.Client{Timeout: timeout},
 	}
 }
 
-func (c *client) Get(ctx context.Context, key, requestId string) (any, error) {
+func (c *clientImpl) Get(ctx context.Context, key, requestId string) (any, error) {
 	const (
 		spanName = "client.get"
 	)
@@ -51,7 +47,7 @@ func (c *client) Get(ctx context.Context, key, requestId string) (any, error) {
 	r, err := c.prepareWithUrlPath(ctx, http.MethodGet, key)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".prepare", err)
-		otelHelpers.SetSpanErr(span, err)
+		otelHelpers.SetSpanExceptionWithErr(span, err)
 		return nil, err
 	}
 
@@ -64,14 +60,16 @@ func (c *client) Get(ctx context.Context, key, requestId string) (any, error) {
 			return nil, err
 		}
 		err = fmt.Errorf("%s: %w", spanName+".invoke", err)
-		otelHelpers.SetSpanErr(span, err)
+		otelHelpers.SetSpanExceptionWithErr(span, err)
 		return nil, err
 	}
 	// TODO: fix incorrect return
 	return nil, validateResponse(b)
 }
 
-func (c *client) Set(ctx context.Context, key string, value any, requestId string) error {
+// TODO: fix return codes
+
+func (c *clientImpl) Set(ctx context.Context, key string, value any, requestId string) error {
 	const (
 		spanName = "client.set"
 	)
@@ -82,7 +80,7 @@ func (c *client) Set(ctx context.Context, key string, value any, requestId strin
 	r, err := c.prepareWithBody(ctx, http.MethodPost, key, value)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".prepare", err)
-		otelHelpers.SetSpanErr(span, err)
+		otelHelpers.SetSpanExceptionWithErr(span, err)
 		return err
 	}
 
@@ -92,13 +90,13 @@ func (c *client) Set(ctx context.Context, key string, value any, requestId strin
 	_, err = c.invoke(r)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".invoke", err)
-		otelHelpers.SetSpanErr(span, err)
+		otelHelpers.SetSpanExceptionWithErr(span, err)
 		return err
 	}
 	return nil
 }
 
-func (c *client) Delete(ctx context.Context, key string, requestId string) error {
+func (c *clientImpl) Delete(ctx context.Context, key string, requestId string) error {
 	const (
 		spanName = "client.delete"
 	)
@@ -109,7 +107,7 @@ func (c *client) Delete(ctx context.Context, key string, requestId string) error
 	r, err := c.prepareWithUrlPath(ctx, http.MethodDelete, key)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".prepare", err)
-		otelHelpers.SetSpanErr(span, err)
+		otelHelpers.SetSpanExceptionWithErr(span, err)
 		return err
 	}
 
@@ -119,13 +117,13 @@ func (c *client) Delete(ctx context.Context, key string, requestId string) error
 	_, err = c.invoke(r)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".invoke", err)
-		otelHelpers.SetSpanErr(span, err)
+		otelHelpers.SetSpanExceptionWithErr(span, err)
 		return err
 	}
 	return nil
 }
 
-func (c *client) prepareWithBody(ctx context.Context, method, key string, val any) (*http.Request, error) {
+func (c *clientImpl) prepareWithBody(ctx context.Context, method, key string, val any) (*http.Request, error) {
 	body := map[string]any{"key": key, "value": val}
 
 	jsonBody, err := json.Marshal(body)
@@ -138,7 +136,7 @@ func (c *client) prepareWithBody(ctx context.Context, method, key string, val an
 	return http.NewRequestWithContext(ctx, method, c.backend, reader)
 }
 
-func (c *client) prepareWithUrlPath(ctx context.Context, method, key string) (*http.Request, error) {
+func (c *clientImpl) prepareWithUrlPath(ctx context.Context, method, key string) (*http.Request, error) {
 	encodedKey := url.QueryEscape(key)
 
 	path, err := url.JoinPath(c.backend, encodedKey)
@@ -149,7 +147,7 @@ func (c *client) prepareWithUrlPath(ctx context.Context, method, key string) (*h
 	return http.NewRequestWithContext(ctx, method, path, nil)
 }
 
-func (c *client) invoke(r *http.Request) ([]byte, error) {
+func (c *clientImpl) invoke(r *http.Request) ([]byte, error) {
 	resp, err := c.client.Do(r)
 	if err != nil {
 		return nil, err

@@ -12,11 +12,11 @@ import (
 	"github.com/KennyMacCormik/common/log"
 	otelInit "github.com/KennyMacCormik/otel/backend/pkg/otel/init"
 
+	"github.com/KennyMacCormik/otel/api/internal/client/client_impl"
 	initApp "github.com/KennyMacCormik/otel/api/internal/init"
-	"github.com/KennyMacCormik/otel/api/internal/service"
+	"github.com/KennyMacCormik/otel/api/internal/service/service_impl"
 
 	"github.com/KennyMacCormik/otel/api/internal/cache"
-	"github.com/KennyMacCormik/otel/api/internal/client"
 )
 
 const (
@@ -69,9 +69,9 @@ func main() {
 		}
 	}()
 
-	httpClient := client.NewBackendClient(conf.Client.Endpoint, conf.Client.RequestTimeout)
+	httpClient := client_impl.NewBackendClient(conf.Client.Endpoint, conf.Client.RequestTimeout)
 
-	svc := service.NewServiceLayer(httpCache, httpClient)
+	svc := service_impl.NewServiceLayer(httpCache, httpClient)
 
 	httpSvr := initApp.InitServer(conf, svc)
 	log.Info("http server initialized")
