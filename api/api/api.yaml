@@ -1,0 +1,112 @@
+openapi: 3.0.3
+info:
+  title: Backend API
+  description: API for managing key-value storage.
+  version: 1.0.0
+paths:
+  /storage/{key}:
+    get:
+      summary: Retrieve a value by key
+      tags:
+        - Storage
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: |
+            The key **must be URL-encoded** when making a request.
+            Example: `my key` → `my%20key`
+      responses:
+        200:
+          description: Successfully retrieved value
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  key:
+                    type: string
+                  value:
+                    type: string
+        400:
+          $ref: '#/components/responses/BadRequest'
+        404:
+          $ref: '#/components/responses/NotFound'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+    delete:
+      summary: Delete a key-value pair
+      tags:
+        - Storage
+      parameters:
+        - name: key
+          in: path
+          required: true
+          schema:
+            type: string
+          description: |
+            The key **must be URL-encoded** when making a request.
+            Example: `my key` → `my%20key`
+      responses:
+        200:
+          description: Successfully deleted key
+        400:
+          $ref: '#/components/responses/BadRequest'
+        500:
+          $ref: '#/components/responses/InternalServerError'
+  /storage:
+    put:
+      summary: Create or update a key-value pair
+      tags:
+        - Storage
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                  description: "The key must be a raw string (not URL-encoded)."
+                value:
+                  type: string
+                  description: "The value must be a raw string (not URL-encoded)."
+      responses:
+        200:
+          description: Successfully updated existing value
+        201:
+          description: Successfully created a new value
+        204:
+          description: Successful request, nothing changed
+        400:
+          description: Bad request (malformed input or missing required fields)
+        500:
+          $ref: '#/components/responses/InternalServerError'
+
+components:
+  responses:
+    BadRequest:
+      description: Bad request (malformed input or missing required fields)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+          examples:
+            KeyNotEncoded:
+              summary: Key must be URL-encoded
+              value:
+                error: "key must be URL-encoded"
+            NoKeyProvided:
+              summary: No key provided
+              value:
+                error: "no key provided"
+    NotFound:
+      description: Key not found
+    InternalServerError:
+      description: Server-side error

@@ -12,9 +12,11 @@ func NewCache() (cache.CacheInterface, error) {
 		c, _ := ttl_cache.NewTtlCache(sync_map.NewSyncMapCache())
 		return c
 	}
+
 	c, err := sharded_cache.NewShardedCache(fn)
 	if err != nil {
 		return nil, err
 	}
+
 	return c, nil
 }

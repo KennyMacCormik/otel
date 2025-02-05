@@ -81,6 +81,7 @@ func (c *clientImpl) Set(ctx context.Context, key string, value any, requestId s
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".prepare", err)
 		otelHelpers.SetSpanExceptionWithErr(span, err)
+
 		return err
 	}
 
@@ -91,8 +92,10 @@ func (c *clientImpl) Set(ctx context.Context, key string, value any, requestId s
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".invoke", err)
 		otelHelpers.SetSpanExceptionWithErr(span, err)
+
 		return err
 	}
+
 	return nil
 }
 
@@ -108,6 +111,7 @@ func (c *clientImpl) Delete(ctx context.Context, key string, requestId string) e
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".prepare", err)
 		otelHelpers.SetSpanExceptionWithErr(span, err)
+
 		return err
 	}
 
@@ -118,8 +122,10 @@ func (c *clientImpl) Delete(ctx context.Context, key string, requestId string) e
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".invoke", err)
 		otelHelpers.SetSpanExceptionWithErr(span, err)
+
 		return err
 	}
+
 	return nil
 }
 

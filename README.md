@@ -157,39 +157,19 @@ curl --location 'http://localhost:8081/storage/te%24tKey' \
 
 ## TODO
 
-- Add Swagger/OpenAPI documentation for the API and Backend endpoints (api, ~~backend~~)
 - Define app behavior in more details (api, ~~backend~~)
 - Add prometheus exporter
-- Fix main.go (and all other files too) to remove useless comments and add emtpy strings (api, backend)
-- Sort imports (Golnad have settings for that) (api, ~~backend~~)
 - Add [linters](https://golangci-lint.run/usage/linters/)
-- Change myinit name (api, ~~backend~~, otel-common)
-- Change module name (`module backend`) to repo name (`module github.com/KennyMacCormik/otel/backend`) (api, ~~backend~~)
-- Add run and close funcs to http server (api, ~~backend~~)
-- Remove goroutine and closer return from InitServer() (api, ~~backend~~)
-- Change cfg package according to recommendations (https://github.com/katyafirstova/auth_service/tree/week_2) (api, ~~backend~~)
-- Change file naming to snake_case (api, ~~backend~~)
-- Change int to int64 (api, ~~backend~~)
-- Move storage.go to separate folder (api, ~~backend~~)
-- Add empty strings everywhere (api, ~~backend~~)
-- Make logger global (refactor log package) (api, ~~backend~~)
 - Review http response codes (201, 204) (api, ~~backend~~)
-- Add structs and interfaces for handlers (api, ~~backend~~)
-- Do not use "Interface" and "layer" as names (api, ~~backend~~)
+- Add interfaces for handlers (api, backend)
 - Add TTL tests for cache
-- Fix compute.Get()
-  - Remove unnecessary else
-  - write val to cache
-  - do not stop if cache fails
-- use "service" instead of "compute"
-- add common data types to models (api, ~~backend~~)
-- RateLimiter
+- Fix service.Get()
+  - write value to cache
+- RateLimiter ([example](https://github.com/uber-go/ratelimit))
   - Store RateLimiter conf in Redis
   - Move RateLimiter metrics to prometheus
   - Move RateLimiter away from logs and traces
   - Fix RateLimiter metrics
-- Remove traces from middleware (api, ~~backend~~)
-- Add error marks to span (api, ~~backend~~)
 - Add live and ready probes
 - Add resource limits
 

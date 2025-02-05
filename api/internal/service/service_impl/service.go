@@ -40,12 +40,11 @@ func (l *serviceLayer) Get(ctx context.Context, key, requestId string, lg *slog.
 			lg.Debug("cache miss")
 
 			return l.invokeClientAndStoreValue(ctx, key, requestId)
-		} else {
-			otelHelpers.SetSpanExceptionWithoutErr(span, err)
-			lg.Warn("cache error", "error", err)
-
-			return l.invokeClientAndStoreValue(ctx, key, requestId)
 		}
+		otelHelpers.SetSpanExceptionWithoutErr(span, err)
+		lg.Warn("cache error", "error", err)
+
+		return l.invokeClientAndStoreValue(ctx, key, requestId)
 	}
 
 	span.AddEvent("cache hit")

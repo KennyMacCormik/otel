@@ -98,6 +98,7 @@ func main() {
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	defer signal.Stop(quit)
 	<-quit
+
 	log.Info("server stopped")
 }
 

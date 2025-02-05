@@ -51,6 +51,7 @@ func (s *StorageHandler) ginGet() func(c *gin.Context) {
 			err := errors.New("no request ID provided")
 			setSpanErr(span, err)
 			lg.Error("malformed request", "error", err.Error())
+
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -59,6 +60,7 @@ func (s *StorageHandler) ginGet() func(c *gin.Context) {
 		if err != nil {
 			setSpanErr(span, err)
 			lg.Error("malformed request", "error", err.Error())
+
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -67,16 +69,20 @@ func (s *StorageHandler) ginGet() func(c *gin.Context) {
 		if err != nil {
 			if errors.Is(err, cacheErrors.ErrNotFound) {
 				lg.Warn("key not found", "key", key)
+
 				c.Status(http.StatusNotFound)
 				return
 			}
+
 			lg.Error("failed to get value", "key", key, "error", err.Error())
+
 			c.Status(http.StatusInternalServerError)
 			return
 		}
 
 		value := fmt.Sprintf("%v", val)
 		result := httpModels.Body{Key: key, Val: value}
+
 		log.Debug("got value", "key", key, "value", value)
 		c.JSON(http.StatusOK, result)
 	}
@@ -95,6 +101,7 @@ func (s *StorageHandler) ginSet() func(c *gin.Context) {
 			err := errors.New("no request ID provided")
 			setSpanErr(span, err)
 			lg.Error("malformed request", "error", err.Error())
+
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -105,6 +112,7 @@ func (s *StorageHandler) ginSet() func(c *gin.Context) {
 		if err != nil {
 			setSpanErr(span, err)
 			lg.Error("failed read request body", "error", err.Error())
+
 			c.Status(http.StatusBadRequest)
 			return
 		}
@@ -115,6 +123,7 @@ func (s *StorageHandler) ginSet() func(c *gin.Context) {
 		code, err := s.svc.Set(c.Request.Context(), b.Key, b.Val, reqId, lg)
 		if err != nil {
 			lg.Error("failed to set value", "key", b.Key, "value", b.Val, "error", err.Error())
+
 			c.Status(http.StatusInternalServerError)
 			return
 		}
@@ -136,6 +145,7 @@ func (s *StorageHandler) ginDel() func(c *gin.Context) {
 			err := errors.New("no request ID provided")
 			setSpanErr(span, err)
 			lg.Error("malformed request", "error", err.Error())
+
 			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 			return
 		}
@@ -144,6 +154,7 @@ func (s *StorageHandler) ginDel() func(c *gin.Context) {
 		if err != nil {
 			setSpanErr(span, err)
 			lg.Error("malformed request", "error", err.Error())
+
 			c.Status(http.StatusBadRequest)
 			return
 		}
@@ -151,6 +162,7 @@ func (s *StorageHandler) ginDel() func(c *gin.Context) {
 		err = s.svc.Delete(c.Request.Context(), key, reqId, lg)
 		if err != nil {
 			lg.Error("failed to delete value", "key", key, "error", err.Error())
+
 			c.Status(http.StatusInternalServerError)
 			return
 		}
