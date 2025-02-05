@@ -157,7 +157,7 @@ curl --location 'http://localhost:8081/storage/te%24tKey' \
 
 ## TODO
 
-- Define app behavior in more details (api, ~~backend~~)
+- Align api README and swagger with actual code
 - Add prometheus exporter
 - Add [linters](https://golangci-lint.run/usage/linters/)
 - Review http response codes (201, 204) (api, ~~backend~~)
