@@ -1,7 +1,14 @@
 # Description
 
 ## Overview
-The **Backend API** provides a simple RESTful interface to manage key-value storage. It supports storing, retrieving, and deleting key-value pairs.
+The **API** is a RESTful interface for managing key-value storage, designed for efficient retrieval and modification of stored data. It acts as a middleware between clients and the [Backend Service](https://github.com/KennyMacCormik/otel/tree/main/backend), ensuring optimized data access and enhanced performance.
+
+Key Features
+- Simple RESTful Interface – Supports `PUT`, `GET`, and `DELETE` operations for managing key-value pairs.
+- Integrated Caching – Built-in caching mechanism with a 60-second TTL, reducing backend load and improving response times.
+- Backend Integration – Fetches and updates values from the [Backend Service](https://github.com/KennyMacCormik/otel/tree/main/backend), ensuring consistency.
+- Optimized for Performance – Implements caching strategies to minimize redundant backend requests, improving throughput.
+- Observability with OpenTelemetry – Tracing support for distributed request tracking
 
 ## API Endpoints
 
@@ -35,9 +42,6 @@ The **Backend API** provides a simple RESTful interface to manage key-value stor
     - `400 Bad Request`: Malformed request.
     - `500 Internal Server Error`: Unexpected server error.
 
-## OpenTelemetry Integration
-This API integrates with **OpenTelemetry** for distributed tracing, ensuring detailed observability across microservices.
-
 # Build Guide
 
 To build the application, specify the target OS, architecture, and output executable name, use:
@@ -68,6 +72,13 @@ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o backend
 # Configuration Guide
 
 This section outlines available environment variables to configure the backend server. These variables allow fine-tuned control over server behavior, logging, tracing, and rate-limiting mechanisms.
+
+## Backend Configuration
+
+| Environment Variable             | Description                                                                                                |
+|----------------------------------|------------------------------------------------------------------------------------------------------------|
+| `BACKEND_CLIENT_ENDPOINT`        | **Required parameter.** The URL of the backend service. Must be a valid URL.                               |
+| `BACKEND_CLIENT_REQUEST_TIMEOUT` | Maximum duration of a request to backend service. Must be between 100ms and 1s.  Default value is `200ms`. |
 
 ## Logging Configuration
 
@@ -113,12 +124,11 @@ This section outlines available environment variables to configure the backend s
 Set the environment variables before running the service. For example:
 
 ```sh
-export LOG_FORMAT=json
 export LOG_LEVEL=info
 export HTTP_HOST=0.0.0.0
 export HTTP_PORT=8080
 export OTEL_ENDPOINT="http://otel-collector.example.com:4318"
+export BACKEND_CLIENT_ENDPOINT="http://backend-service.example.com:8081"
 ```
 
 These parameters ensure proper configuration of the microservices, enabling secure, efficient, and scalable operation.
-
