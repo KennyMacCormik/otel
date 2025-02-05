@@ -193,6 +193,10 @@ curl --location 'http://localhost:8081/storage/te%24tKey' \
 - Add live and ready probes
 - Add resource limits
 
+## To ask
+
+- Excessive error checks for request id in storage endpoint
+
 ---
 
 ## License

@@ -11,7 +11,7 @@ import (
 )
 
 type backendClientConf struct {
-	ClientEndpoint       string        `mapstructure:"backend_client_endpoint" validate:"url,required"`
+	ClientEndpoint       string        `mapstructure:"backend_client_endpoint" validate:"required,url"`
 	ClientRequestTimeout time.Duration `mapstructure:"backend_client_request_timeout" validate:"min=100ms,max=1s"`
 }
 

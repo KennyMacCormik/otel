@@ -23,7 +23,12 @@ func StartSpanWithGinCtx(c *gin.Context, traceName, spanName string) trace.Span 
 	return span
 }
 
-func SetSpanErr(span trace.Span, err error) {
+func SetSpanExceptionWithoutErr(span trace.Span, err error) {
+	span.RecordError(err)
+	span.SetAttributes(attribute.String("error.message", err.Error()))
+}
+
+func SetSpanExceptionWithErr(span trace.Span, err error) {
 	span.SetStatus(codes.Error, err.Error())
 	span.RecordError(err)
 	span.SetAttributes(attribute.String("error.message", err.Error()))

@@ -10,7 +10,7 @@ import (
 	"syscall"
 
 	"github.com/KennyMacCormik/common/log"
-	"github.com/KennyMacCormik/otel/backend/pkg/otel"
+	otelInit "github.com/KennyMacCormik/otel/backend/pkg/otel/init"
 
 	initApp "github.com/KennyMacCormik/otel/api/internal/init"
 	"github.com/KennyMacCormik/otel/api/internal/service"
@@ -40,7 +40,7 @@ func main() {
 	log.Info("config initialized")
 	log.Debug(fmt.Sprintf("%+v", conf))
 
-	tp, err := otel.OTelInit(context.Background(), conf.OTel.Endpoint, otelServiceName)
+	tp, err := otelInit.OTelInit(context.Background(), conf.OTel.Endpoint, otelServiceName)
 	if err != nil {
 		log.Error("failed to initialize OTel", "error", err)
 		gracefulStop()

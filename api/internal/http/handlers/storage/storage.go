@@ -44,9 +44,16 @@ func (s *StorageHandler) ginGet() func(c *gin.Context) {
 			spanName = "http.get"
 		)
 
-		lg, span := getLogAndSpan(c, spanName)
+		lg, span, reqId := getLogSpanReqID(c, spanName)
 		defer span.End()
 		defer lg.Info("request finished")
+		if reqId == "" {
+			err := errors.New("no request ID provided")
+			setSpanErr(span, err)
+			lg.Error("malformed request", "error", err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
 		key, err := getKey(c)
 		if err != nil {
@@ -56,14 +63,13 @@ func (s *StorageHandler) ginGet() func(c *gin.Context) {
 			return
 		}
 
-		val, err := s.svc.Get(c.Request.Context(), key)
+		val, err := s.svc.Get(c.Request.Context(), key, reqId, lg)
 		if err != nil {
 			if errors.Is(err, cacheErrors.ErrNotFound) {
 				lg.Warn("key not found", "key", key)
 				c.Status(http.StatusNotFound)
 				return
 			}
-			setSpanErr(span, err)
 			lg.Error("failed to get value", "key", key, "error", err.Error())
 			c.Status(http.StatusInternalServerError)
 			return
@@ -82,9 +88,16 @@ func (s *StorageHandler) ginSet() func(c *gin.Context) {
 			spanName = "http.set"
 		)
 
-		lg, span := getLogAndSpan(c, spanName)
+		lg, span, reqId := getLogSpanReqID(c, spanName)
 		defer span.End()
 		defer lg.Info("request finished")
+		if reqId == "" {
+			err := errors.New("no request ID provided")
+			setSpanErr(span, err)
+			lg.Error("malformed request", "error", err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
 		b := &httpModels.Body{}
 
@@ -99,9 +112,8 @@ func (s *StorageHandler) ginSet() func(c *gin.Context) {
 		lg.Info("request key", "key", b.Key)
 		lg.Debug("request value", "value", b.Val)
 
-		code, err := s.svc.Set(c.Request.Context(), b.Key, b.Val)
+		code, err := s.svc.Set(c.Request.Context(), b.Key, b.Val, reqId)
 		if err != nil {
-			setSpanErr(span, err)
 			lg.Error("failed to set value", "key", b.Key, "value", b.Val, "error", err.Error())
 			c.Status(http.StatusInternalServerError)
 			return
@@ -117,9 +129,16 @@ func (s *StorageHandler) ginDel() func(c *gin.Context) {
 			spanName = "http.delete"
 		)
 
-		lg, span := getLogAndSpan(c, spanName)
+		lg, span, reqId := getLogSpanReqID(c, spanName)
 		defer span.End()
 		defer lg.Info("request finished")
+		if reqId == "" {
+			err := errors.New("no request ID provided")
+			setSpanErr(span, err)
+			lg.Error("malformed request", "error", err.Error())
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
+		}
 
 		key, err := getKey(c)
 		if err != nil {
@@ -129,9 +148,8 @@ func (s *StorageHandler) ginDel() func(c *gin.Context) {
 			return
 		}
 
-		err = s.svc.Delete(c.Request.Context(), key)
+		err = s.svc.Delete(c.Request.Context(), key, reqId)
 		if err != nil {
-			setSpanErr(span, err)
 			lg.Error("failed to delete value", "key", key, "error", err.Error())
 			c.Status(http.StatusInternalServerError)
 			return
@@ -178,7 +196,7 @@ func isUrlEncoded(rawKey, ginDecodedKey string) bool {
 	return true
 }
 
-func getLogAndSpan(c *gin.Context, spanName string) (*slog.Logger, trace.Span) {
+func getLogSpanReqID(c *gin.Context, spanName string) (*slog.Logger, trace.Span, string) {
 	var lg *slog.Logger
 
 	span := startSpan(c, spanName, spanName)
@@ -201,13 +219,13 @@ func getLogAndSpan(c *gin.Context, spanName string) (*slog.Logger, trace.Span) {
 		span.SetAttributes(attribute.String("request_id", "N/A"))
 		log.Error("no request ID in context")
 		lg = log.CopyLogger().With("Method", c.Request.Method, "UrlPath", c.Request.URL.Path)
-		return lg, span
+		return lg, span, ""
 	}
 
 	span.SetAttributes(attribute.String("request_id", reqId))
 	lg = log.CopyLogger().With("request_id", reqId, "Method", c.Request.Method, "UrlPath", c.Request.URL.Path)
 
-	return lg, span
+	return lg, span, reqId
 }
 
 func startSpan(c *gin.Context, traceName, spanName string) trace.Span {
