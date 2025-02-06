@@ -159,7 +159,6 @@ curl --location 'http://localhost:8081/storage/te%24tKey' \
 
 - Add prometheus exporter
 - Add [linters](https://golangci-lint.run/usage/linters/)
-- Add interfaces for handlers (api, backend)
 - RateLimiter ([example](https://github.com/uber-go/ratelimit))
   - Store RateLimiter conf in Redis
   - Move RateLimiter metrics to prometheus
