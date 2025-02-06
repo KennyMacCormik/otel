@@ -4,7 +4,7 @@
 ## Overview
 This project includes two main components:
 1. [**Backend**](https://github.com/KennyMacCormik/otel/tree/main/backend)
-2. **API**: A REST API that interacts with the backend.
+2. [**API**](https://github.com/KennyMacCormik/otel/tree/main/api)
 
 ---
 
