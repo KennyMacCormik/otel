@@ -157,14 +157,9 @@ curl --location 'http://localhost:8081/storage/te%24tKey' \
 
 ## TODO
 
-- Align api README and swagger with actual code
 - Add prometheus exporter
 - Add [linters](https://golangci-lint.run/usage/linters/)
-- Review http response codes (201, 204) (api, ~~backend~~)
 - Add interfaces for handlers (api, backend)
-- Add TTL tests for cache
-- Fix service.Get()
-  - write value to cache
 - RateLimiter ([example](https://github.com/uber-go/ratelimit))
   - Store RateLimiter conf in Redis
   - Move RateLimiter metrics to prometheus
