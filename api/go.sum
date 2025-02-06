@@ -6,8 +6,8 @@ github.com/KennyMacCormik/common/log v0.2.0 h1:4jW+i4SvV5IY7ERQuELtGoaZAlSudZDxB
 github.com/KennyMacCormik/common/log v0.2.0/go.mod h1:e8UJS616A1Ow4ZPftbadteBQi4JybsOD2ZZwibt1RR8=
 github.com/KennyMacCormik/common/val v0.1.1 h1:5jCJitZ8BpfMZILue7bLIVnUi0/J9misk4FNSR6IweE=
 github.com/KennyMacCormik/common/val v0.1.1/go.mod h1:+qMwy1jgEDS0Y5dxYR3jG6rzfzAgWN+f1IEzSx9A7l4=
-github.com/KennyMacCormik/otel/backend v0.5.7 h1:cmpbm9yC9nxZvhAvuB9X52aLLreJjER4m/6zOtS5jOM=
-github.com/KennyMacCormik/otel/backend v0.5.7/go.mod h1:1c2NmDRFk2kOCFGBI59aGu7meg/AI/GNdZtq9vUP92U=
+github.com/KennyMacCormik/otel/backend v0.6.0 h1:iAjK8aiDwA0uWOgEAFVzq9gPPeMWAUJx9b4sVc6RSoA=
+github.com/KennyMacCormik/otel/backend v0.6.0/go.mod h1:pZ8xQnKBJQP/kDBEj3lReeDQNC0rs6LsvwsnW2t7rxg=
 github.com/bytedance/sonic v1.12.8 h1:4xYRVRlXIgvSZ4e8iVTlMF5szgpXd4AfvuWgA8I8lgs=
 github.com/bytedance/sonic v1.12.8/go.mod h1:uVvFidNmlt9+wa31S1urfwwthTWteBgG0hWuoKAXTx8=
 github.com/bytedance/sonic/loader v0.1.1/go.mod h1:ncP89zfokxS5LZrJxl5z0UJcsk4M4yY2JpfqGeCtNLU=

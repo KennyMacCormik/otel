@@ -7,7 +7,7 @@ require (
 	github.com/KennyMacCormik/common/gin_factory v0.1.4
 	github.com/KennyMacCormik/common/log v0.2.0
 	github.com/KennyMacCormik/common/val v0.1.1
-	github.com/KennyMacCormik/otel/backend v0.5.7
+	github.com/KennyMacCormik/otel/backend v0.6.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/spf13/viper v1.19.0
 	go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin v0.59.0
