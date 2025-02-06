@@ -53,8 +53,6 @@ func (l *serviceLayer) Get(ctx context.Context, key, requestId string, lg *slog.
 	return val, nil
 }
 
-// TODO: fix codes
-
 func (l *serviceLayer) Set(ctx context.Context, key string, value any, requestId string, lg *slog.Logger) (int, error) {
 	const (
 		spanName = "compute.set"
@@ -68,7 +66,7 @@ func (l *serviceLayer) Set(ctx context.Context, key string, value any, requestId
 		lg.Error(fmt.Sprintf("%s: could not update cache", spanName), "error", err)
 	}
 
-	return 0, l.client.Set(ctx, key, value, requestId)
+	return l.client.Set(ctx, key, value, requestId)
 }
 
 func (l *serviceLayer) Delete(ctx context.Context, key, requestId string, lg *slog.Logger) error {

@@ -2,6 +2,7 @@ package cache
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"reflect"
 	"sync/atomic"
@@ -74,7 +75,6 @@ func IsNotNil(value any, callerInfo string) error {
 	val := reflect.ValueOf(value)
 	kind := val.Kind()
 
-	// TODO fix warning
 	switch kind {
 	case reflect.Ptr, reflect.Interface:
 		if val.IsNil() {
@@ -84,6 +84,8 @@ func IsNotNil(value any, callerInfo string) error {
 		if val.IsNil() {
 			return cache2.NewErrInvalidValue(value, cache2.ErrNilFunc, callerInfo)
 		}
+	default:
+		return errors.New("invalid value type")
 	}
 
 	return nil

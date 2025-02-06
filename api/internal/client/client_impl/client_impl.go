@@ -55,7 +55,7 @@ func (c *clientImpl) Get(ctx context.Context, key, requestId string) (any, error
 	r.Header.Set(gin_request_id.RequestIDKey, requestId)
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(r.Header))
 
-	b, err := c.invoke(r)
+	b, _, err := c.invoke(r)
 	if err != nil {
 		if errors.Is(err, cacheErrors.ErrNotFound) {
 			return nil, err
@@ -75,9 +75,7 @@ func (c *clientImpl) Get(ctx context.Context, key, requestId string) (any, error
 	return response.Val, validateResponse(b)
 }
 
-func (c *clientImpl) Set(ctx context.Context, key string, value any, requestId string) error {
-	// TODO: fix return codes
-
+func (c *clientImpl) Set(ctx context.Context, key string, value any, requestId string) (int, error) {
 	const (
 		spanName = "client.set"
 	)
@@ -90,21 +88,21 @@ func (c *clientImpl) Set(ctx context.Context, key string, value any, requestId s
 		err = fmt.Errorf("%s: %w", spanName+".prepare", err)
 		otelHelpers.SetSpanExceptionWithErr(span, err)
 
-		return err
+		return 0, err
 	}
 
 	r.Header.Set(gin_request_id.RequestIDKey, requestId)
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(r.Header))
 
-	_, err = c.invoke(r)
+	_, code, err := c.invoke(r)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".invoke", err)
 		otelHelpers.SetSpanExceptionWithErr(span, err)
 
-		return err
+		return 0, err
 	}
 
-	return nil
+	return code, nil
 }
 
 func (c *clientImpl) Delete(ctx context.Context, key string, requestId string) error {
@@ -126,7 +124,7 @@ func (c *clientImpl) Delete(ctx context.Context, key string, requestId string) e
 	r.Header.Set(gin_request_id.RequestIDKey, requestId)
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(r.Header))
 
-	_, err = c.invoke(r)
+	_, _, err = c.invoke(r)
 	if err != nil {
 		err = fmt.Errorf("%s: %w", spanName+".invoke", err)
 		otelHelpers.SetSpanExceptionWithErr(span, err)
@@ -161,26 +159,26 @@ func (c *clientImpl) prepareWithUrlPath(ctx context.Context, method, key string)
 	return http.NewRequestWithContext(ctx, method, path, nil)
 }
 
-func (c *clientImpl) invoke(r *http.Request) ([]byte, error) {
+func (c *clientImpl) invoke(r *http.Request) ([]byte, int, error) {
 	resp, err := c.client.Do(r)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 	defer func() { _ = resp.Body.Close() }()
 
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, cacheErrors.ErrNotFound
+		return nil, 0, cacheErrors.ErrNotFound
 	}
 	if resp.StatusCode == http.StatusInternalServerError {
-		return nil, errors.New("internal server error")
+		return nil, 0, errors.New("internal server error")
 	}
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, 0, err
 	}
 
-	return body, nil
+	return body, resp.StatusCode, nil
 }
 
 func validateResponse(b []byte) error {
