@@ -2,7 +2,7 @@ package init
 
 import (
 	"github.com/KennyMacCormik/common/gin_factory"
-	httpWithGin "github.com/KennyMacCormik/otel/backend/pkg/gin"
+	httpWithGin "github.com/KennyMacCormik/otel/backend/pkg/gin/gin_http"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_rate_limiter"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
