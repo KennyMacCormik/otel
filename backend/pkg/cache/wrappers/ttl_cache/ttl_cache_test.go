@@ -19,9 +19,6 @@ import (
 	mockCache "github.com/KennyMacCormik/otel/backend/pkg/cache/mocks"
 )
 
-// TODO: update SET method tests
-// TODO: add test that TTL works as expected
-
 func getTtlCacheMock(t *testing.T, opts ...InitOptions) (*mockCache.MockCacheInterface, cache.CacheInterface) {
 	c := mockCache.NewMockCacheInterface(t)
 
@@ -519,4 +516,31 @@ func TestTtlCache_TtlExpired(t *testing.T) {
 		futureTime := time.Now().Add(1 * time.Second)
 		assert.False(t, ttlExpired(futureTime), "ttlExpired should return false for a future time")
 	})
+}
+
+func TestTtlCache_TtlGeneralTest(t *testing.T) {
+	var (
+		key1         = "key1"
+		actualValue1 = "value1"
+		code1        = 201
+		value1       = ttlCacheModels.TtlCacheEntry{Value: "value1", ExpiresAt: time.Now()}
+	)
+
+	c, ttl := getTtlCacheMock(t, WithOverrideDefaults(1*time.Second, 500*time.Millisecond, 1*time.Second, 100*time.Millisecond, 10))
+
+	c.EXPECT().Set(mock.Anything, key1, mock.Anything).Return(code1, nil)
+	c.EXPECT().GetKeys(mock.Anything).Return([]string{key1}, nil)
+	c.EXPECT().Get(mock.Anything, key1).Return(&value1, nil)
+	c.EXPECT().Delete(mock.Anything, key1).Return(nil)
+
+	code, err := ttl.Set(context.Background(), key1, actualValue1)
+	require.NoError(t, err, "expect no error with default configuration")
+	assert.Equal(t, code1, code, "expect return same code as in underlying impl")
+
+	time.Sleep(1 * time.Second)
+
+	val, err := ttl.Get(context.Background(), "key1")
+	require.Error(t, err, "expect error for expired entry")
+	assert.Empty(t, val, "expect return empty value for expired entry")
+	assert.ErrorIs(t, err, NewErrTimeout("", "", time.Now()), "expect error for expired entry")
 }

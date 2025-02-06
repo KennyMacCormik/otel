@@ -23,8 +23,6 @@ func NewServiceLayer(cache cache.CacheInterface, client client.BackendClientInte
 	return &serviceLayer{cache: cache, client: client}
 }
 
-// TODO: cache 404 result
-
 func (l *serviceLayer) Get(ctx context.Context, key, requestId string, lg *slog.Logger) (any, error) {
 	const (
 		spanName = "service.get"

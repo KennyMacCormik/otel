@@ -2,7 +2,6 @@ package cache
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"reflect"
 	"sync/atomic"
@@ -85,7 +84,6 @@ func IsNotNil(value any, callerInfo string) error {
 			return cache2.NewErrInvalidValue(value, cache2.ErrNilFunc, callerInfo)
 		}
 	default:
-		return errors.New("invalid value type")
 	}
 
 	return nil

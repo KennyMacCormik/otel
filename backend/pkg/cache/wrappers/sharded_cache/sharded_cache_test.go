@@ -14,8 +14,6 @@ import (
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
 )
 
-// TODO: update SET method tests
-
 const testShardNum int64 = 3
 
 func initFunc(t *testing.T) cache.CacheInterface {
@@ -186,5 +184,3 @@ func TestShardedCache_GetShardNumber(t *testing.T) {
 		assert.Equal(t, fallbackShard, shard, "Empty key should default to fallback shard")
 	})
 }
-
-// TODO: add impl tests
