@@ -14,6 +14,7 @@ import (
 	"go.opentelemetry.io/otel/trace"
 
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
+	customGinImpl "github.com/KennyMacCormik/otel/backend/pkg/gin"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
 	cacheErrors "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
 	httpModels "github.com/KennyMacCormik/otel/backend/pkg/models/http"
@@ -24,11 +25,11 @@ type StorageHandler struct {
 	st cache.CacheInterface
 }
 
-func NewStorageHandler(st cache.CacheInterface) *StorageHandler {
+func NewStorageHandler(st cache.CacheInterface) customGinImpl.GinHandler {
 	return &StorageHandler{st: st}
 }
 
-func (s *StorageHandler) GetGinStorageHandler() func(*gin.Engine) {
+func (s *StorageHandler) GetGinHandler() func(*gin.Engine) {
 	return func(router *gin.Engine) {
 		router.GET("/storage/:key", s.ginGet())
 		router.PUT("/storage", s.ginSet())

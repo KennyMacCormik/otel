@@ -36,7 +36,7 @@ func initRouter(conf *Config, svc service.ServiceInterface) *gin_factory.GinFact
 		).GetRateLimiter(),
 	)
 
-	ginFactory.AddHandlers(storageHandlers.NewStorageHandler(svc).GetGinStorageHandler())
+	ginFactory.AddHandlers(storageHandlers.NewStorageHandler(svc).GetGinHandler())
 
 	return ginFactory
 }

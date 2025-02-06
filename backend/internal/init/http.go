@@ -6,8 +6,8 @@ import (
 
 	storageHandlers "github.com/KennyMacCormik/otel/backend/internal/http/handlers/storage"
 	"github.com/KennyMacCormik/otel/backend/pkg/cache"
-	httpWithGin "github.com/KennyMacCormik/otel/backend/pkg/gin"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_get_trace_parent"
+	httpWithGin "github.com/KennyMacCormik/otel/backend/pkg/gin/gin_http"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_rate_limiter"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
 )
@@ -38,7 +38,7 @@ func initRouter(conf *Config, st cache.CacheInterface) *gin_factory.GinFactory {
 		).GetRateLimiter(),
 	)
 
-	ginFactory.AddHandlers(storageHandlers.NewStorageHandler(st).GetGinStorageHandler())
+	ginFactory.AddHandlers(storageHandlers.NewStorageHandler(st).GetGinHandler())
 
 	return ginFactory
 }

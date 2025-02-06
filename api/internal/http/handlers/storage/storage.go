@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/KennyMacCormik/common/log"
+	customGinImpl "github.com/KennyMacCormik/otel/backend/pkg/gin"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/attribute"
@@ -26,11 +27,11 @@ type StorageHandler struct {
 	svc service.ServiceInterface
 }
 
-func NewStorageHandler(svc service.ServiceInterface) *StorageHandler {
+func NewStorageHandler(svc service.ServiceInterface) customGinImpl.GinHandler {
 	return &StorageHandler{svc: svc}
 }
 
-func (s *StorageHandler) GetGinStorageHandler() func(*gin.Engine) {
+func (s *StorageHandler) GetGinHandler() func(*gin.Engine) {
 	return func(router *gin.Engine) {
 		router.GET("/storage/:key", s.ginGet())
 		router.PUT("/storage", s.ginSet())
