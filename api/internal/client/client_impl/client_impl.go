@@ -15,6 +15,7 @@ import (
 	"github.com/KennyMacCormik/common/conv"
 	"github.com/KennyMacCormik/otel/backend/pkg/gin/gin_request_id"
 	cacheErrors "github.com/KennyMacCormik/otel/backend/pkg/models/errors/cache"
+	httpModels "github.com/KennyMacCormik/otel/backend/pkg/models/http"
 	otelHelpers "github.com/KennyMacCormik/otel/backend/pkg/otel/helpers"
 	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/propagation"
@@ -63,13 +64,20 @@ func (c *clientImpl) Get(ctx context.Context, key, requestId string) (any, error
 		otelHelpers.SetSpanExceptionWithErr(span, err)
 		return nil, err
 	}
-	// TODO: fix incorrect return
-	return nil, validateResponse(b)
+
+	var response httpModels.Body
+	if err = json.Unmarshal(b, &response); err != nil {
+		err = fmt.Errorf("%s: %w", spanName+".unmarshal", err)
+		otelHelpers.SetSpanExceptionWithErr(span, err)
+		return "", err
+	}
+
+	return response.Val, validateResponse(b)
 }
 
-// TODO: fix return codes
-
 func (c *clientImpl) Set(ctx context.Context, key string, value any, requestId string) error {
+	// TODO: fix return codes
+
 	const (
 		spanName = "client.set"
 	)
