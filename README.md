@@ -170,6 +170,10 @@ curl --location 'http://localhost:8081/storage/te%24tKey' \
 ## To ask
 
 - Excessive error checks for request id in storage endpoint
+- pkg/cache/val_test.go:72:36: SA1012: do not pass a nil Context, even if a function permits it; pass context.TODO if you are unsure about which Context to use (staticcheck)
+  validateFunc := WithCtxValidation(nil, "TestWithCtxValidation_NilContext").
+  It is my test.
+- Correclty configure linter integration with GoLand
 
 ---
 
