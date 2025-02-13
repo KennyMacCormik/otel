@@ -27,18 +27,23 @@ func HttpServer(conf *Config, st cache.CacheInterface) *httpWithGin.GinServer {
 func initRouter(conf *Config, st cache.CacheInterface) *gin_factory.GinFactory {
 	ginFactory := gin_factory.NewGinFactory()
 
+	rm := gin_rate_limiter.NewRateLimiter(
+		conf.RateLimiter.MaxRunning,
+		conf.RateLimiter.MaxWait,
+		conf.RateLimiter.RetryAfter,
+	)
+
 	ginFactory.AddMiddleware(
 		gin_get_trace_parent.GetTraceParent(),
 		otelgin.Middleware(otelGinMiddlewareName),
 		gin_request_id.RequestIDMiddleware(),
-		gin_rate_limiter.NewRateLimiter(
-			conf.RateLimiter.MaxRunning,
-			conf.RateLimiter.MaxWait,
-			conf.RateLimiter.RetryAfter,
-		).GetRateLimiter(),
+		rm.GetRateLimiter(),
 	)
 
-	ginFactory.AddHandlers(storageHandlers.NewStorageHandler(st).GetGinHandler())
+	ginFactory.AddHandlers(
+		storageHandlers.NewStorageHandler(st).GetGinHandler(),
+		rm.GetRateLimiterMetricsEndpoint(),
+	)
 
 	return ginFactory
 }

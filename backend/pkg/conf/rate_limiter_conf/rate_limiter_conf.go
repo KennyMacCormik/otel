@@ -17,13 +17,13 @@ type rateLimiterConfig struct {
 func NewRateLimiterConfig() conf.RateLimiterConf {
 	c := &rateLimiterConfig{}
 
-	viper.SetDefault("rate_limiter_max_conn", "100")
+	viper.SetDefault("rate_limiter_max_conn", "1")
 	err := viper.BindEnv("rate_limiter_max_conn")
 	if err != nil {
 		log.Error("Failed to bind rate_limiter_max_conn")
 	}
 
-	viper.SetDefault("rate_limiter_max_wait", "100")
+	viper.SetDefault("rate_limiter_max_wait", "1")
 	err = viper.BindEnv("rate_limiter_max_wait")
 	if err != nil {
 		log.Error("Failed to bind rate_limiter_max_wait")
