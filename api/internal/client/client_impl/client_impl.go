@@ -18,6 +18,7 @@ import (
 	httpModels "github.com/KennyMacCormik/otel/backend/pkg/models/http"
 	otelHelpers "github.com/KennyMacCormik/otel/backend/pkg/otel/helpers"
 	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/propagation"
 
 	"github.com/KennyMacCormik/otel/api/internal/client"
@@ -51,6 +52,8 @@ func (c *clientImpl) Get(ctx context.Context, key, requestId string) (any, error
 		otelHelpers.SetSpanExceptionWithErr(span, err)
 		return nil, err
 	}
+
+	span.SetAttributes(attribute.String("http.url", r.URL.String()))
 
 	r.Header.Set(gin_request_id.RequestIDKey, requestId)
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(r.Header))
@@ -91,6 +94,8 @@ func (c *clientImpl) Set(ctx context.Context, key string, value any, requestId s
 		return 0, err
 	}
 
+	span.SetAttributes(attribute.String("http.url", r.URL.String()))
+
 	r.Header.Set(gin_request_id.RequestIDKey, requestId)
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(r.Header))
 
@@ -120,6 +125,8 @@ func (c *clientImpl) Delete(ctx context.Context, key string, requestId string) e
 
 		return err
 	}
+
+	span.SetAttributes(attribute.String("http.url", r.URL.String()))
 
 	r.Header.Set(gin_request_id.RequestIDKey, requestId)
 	otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(r.Header))
