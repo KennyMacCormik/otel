@@ -77,7 +77,7 @@ This section outlines available environment variables to configure the backend s
 
 | Environment Variable             | Description                                                                                                |
 |----------------------------------|------------------------------------------------------------------------------------------------------------|
-| `BACKEND_CLIENT_ENDPOINT`        | **Required parameter.** The URL of the backend service. Must be a valid URL.                               |
+| `BACKEND_CLIENT_ENDPOINT`        | **Required parameter.** The URL of the backend service. Must be a valid URL. Shall include necessary path  |
 | `BACKEND_CLIENT_REQUEST_TIMEOUT` | Maximum duration of a request to backend service. Must be between 100ms and 1s.  Default value is `200ms`. |
 
 ## Logging Configuration
