@@ -63,7 +63,7 @@ func (c *clientImpl) Get(ctx context.Context, key, requestId string) (any, error
 		if errors.Is(err, cacheErrors.ErrNotFound) {
 			return nil, err
 		}
-		err = fmt.Errorf("%s: %w", spanName+".invoke", err)
+		err = fmt.Errorf("%s %s: %s: %w", http.MethodPut, r.URL, spanName+".invoke", err)
 		otelHelpers.SetSpanExceptionWithErr(span, err)
 		return nil, err
 	}
@@ -101,7 +101,7 @@ func (c *clientImpl) Set(ctx context.Context, key string, value any, requestId s
 
 	_, code, err := c.invoke(r)
 	if err != nil {
-		err = fmt.Errorf("%s: %w", spanName+".invoke", err)
+		err = fmt.Errorf("%s %s: %s: %w", http.MethodPut, r.URL, spanName+".invoke", err)
 		otelHelpers.SetSpanExceptionWithErr(span, err)
 
 		return 0, err
